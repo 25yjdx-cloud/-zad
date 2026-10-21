@@ -3,6 +3,17 @@ const MAX_STORAGE_DEPTH = 12;
 const MAX_STORAGE_NODES = 10_000;
 const MAX_STORAGE_STRING_LENGTH = 20_000;
 const BLOCKED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+const CLOUD_PENDING_KEYS = 'uns.firebase.pendingLocalKeys';
+
+function rememberCloudSyncChange(key) {
+  if (!key.startsWith('zad.')) return;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CLOUD_PENDING_KEYS) || '[]');
+    const keys = new Set(Array.isArray(parsed) ? parsed.filter((item) => typeof item === 'string') : []);
+    keys.add(key);
+    window.localStorage.setItem(CLOUD_PENDING_KEYS, JSON.stringify([...keys].slice(-500)));
+  } catch { /* The app remains usable with local-only storage. */ }
+}
 
 function isSafeJsonValue(value, seen = new WeakSet(), depth = 0, nodeCount = { value: 0 }) {
   nodeCount.value += 1;
@@ -64,7 +75,12 @@ export function writeStorage(key, value) {
   const serialized = serializeStoredJson(value);
   if (serialized === null) return false;
   try {
+    const previousValue = window.localStorage.getItem(key);
     window.localStorage.setItem(key, serialized);
+    if (key.startsWith('zad.') && previousValue !== serialized) {
+      rememberCloudSyncChange(key);
+      window.dispatchEvent(new CustomEvent('uns:local-data-changed', { detail: { key, value: serialized } }));
+    }
     return true;
   } catch {
     return false;

@@ -176,7 +176,7 @@ export default function AccountModal() {
   function createLocalProfile(event) {
     event.preventDefault();
     const normalizedName = name.replace(/[\u0000-\u001F\u007F]/g, '').trim().replace(/\s+/g, ' ').slice(0, MAX_NAME_LENGTH)
-      || 'زائر زاد';
+      || 'زائر أُنْس';
     const picture = avatarUrl.trim();
     if (!isSecureAvatarUrl(picture)) {
       setSaved(false);
@@ -557,7 +557,7 @@ export default function AccountModal() {
         <div className="modal-content account-modal-content">
           <div className="modal-header">
             <div>
-              <p className="section-kicker mb-1">حسابك على زاد</p>
+              <p className="section-kicker mb-1">حسابك على أُنْس</p>
               <h2 id="account-modal-title" className="modal-title h5">الملف الشخصي</h2>
             </div>
             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
@@ -592,7 +592,7 @@ export default function AccountModal() {
                 ) : (
                   <>
                     <section className="telegram-plan-card" aria-labelledby="telegram-plan-title">
-                      <h3 id="telegram-plan-title">اشتراك بوت زاد مدى الحياة</h3>
+                      <h3 id="telegram-plan-title">اشتراك بوت أُنْس مدى الحياة</h3>
                       <p className="telegram-lifetime-price">
                         <del>٥٠٠ جنيه</del>
                         <strong>٢٥٠ جنيه مصري مدى الحياة</strong>
@@ -712,7 +712,7 @@ export default function AccountModal() {
                       <h3 id="other-vip-title">خطط VIP للحساب</h3>
                       {hasActiveVip && subscription?.plan !== 'telegram_lifetime' ? (
                         <p>اشتراك VIP نشط{subscriptionExpiry ? ` حتى ${subscriptionExpiry}` : ''}.</p>
-                      ) : <p>الخطط الزمنية الاختيارية لحساب زاد.</p>}
+                      ) : <p>الخطط الزمنية الاختيارية لحساب أُنْس.</p>}
                       <div className="vip-plan-options" aria-label="خطط اشتراك VIP">
                         {['monthly', 'annual'].map((planId) => {
                           const plan = plans[planId];
@@ -798,7 +798,7 @@ export default function AccountModal() {
                 <section className="account-login-hero">
                   <span className="account-login-symbol" aria-hidden="true">ز</span>
                   <p className="section-kicker">مساحة قرآنية خاصة بك</p>
-                  <h3>{account.mode === 'local' ? 'ابدأ بملف زائر' : 'مرحباً بك في زاد'}</h3>
+                  <h3>{account.mode === 'local' ? 'ابدأ بملف زائر' : 'مرحباً بك في أُنْس'}</h3>
                   <p className="account-modal-note">
                     {account.mode === 'local'
                       ? 'احفظ اسماً وصورة على هذا الجهاز، أو استخدم Google عند توفر تسجيل الدخول الآمن.'

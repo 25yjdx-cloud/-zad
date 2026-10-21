@@ -2,15 +2,15 @@
   "morning": {
     "title": "أذكار الصباح",
     "type": "local",
-    "path": "audio/adhkar-morning.mp3",
+    "path": "audio/azkar/20.mp3",
     "url": "",
-    "enabled": false
+    "enabled": true
   },
   "evening": {
     "title": "أذكار المساء",
     "type": "local",
-    "path": "audio/adhkar-evening.mp3",
+    "path": "audio/azkar/22.mp3",
     "url": "",
-    "enabled": false
+    "enabled": true
   }
 }

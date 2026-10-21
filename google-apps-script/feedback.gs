@@ -140,9 +140,9 @@ function doPost(event) {
     };
     MailApp.sendEmail({
       to: FEEDBACK_RECIPIENT,
-      subject: `رسالة جديدة من تطبيق زاد: ${categoryLabels[payload.category]}`,
+      subject: `رسالة جديدة من تطبيق أُنْس: ${categoryLabels[payload.category]}`,
       body: [
-        'وصلت رسالة جديدة من نموذج الملاحظات في تطبيق زاد.',
+        'وصلت رسالة جديدة من نموذج الملاحظات في تطبيق أُنْس.',
         `النوع: ${categoryLabels[payload.category]}`,
         '',
         payload.message.trim(),

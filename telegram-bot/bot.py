@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Telegram bot for Zad duas and VIP-gated reminders."""
+"""Telegram bot for Uns duas and VIP-gated reminders."""
 
 import json
 import logging
@@ -235,7 +235,7 @@ def access_message(record):
             return "اشتراك VIP مفعّل."
         return f"اشتراك VIP مفعّل حتى {expires_at:%Y-%m-%d %H:%M UTC}."
     message = (
-        "تذكيرات زاد الآلية تتطلب اشتراك VIP.\n"
+        "تذكيرات أُنْس الآلية تتطلب اشتراك VIP.\n"
         "اشترك الآن لتفعيل التذكير اليومي عبر Telegram، ثم استخدم /vip للتحقق من حالة الاشتراك."
     )
     if subscription_keyboard() is None:
@@ -262,16 +262,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not 40 <= len(token) <= 48 or not all(
                 character.isascii() and (character.isalnum() or character in "_-")
                 for character in token):
-            await update.message.reply_text("رابط الربط غير صالح أو منتهي. أنشئ رابطاً جديداً من ملفك في زاد.")
+            await update.message.reply_text("رابط الربط غير صالح أو منتهي. أنشئ رابطاً جديداً من ملفك في أُنْس.")
             return
         if not await link_google_account(token, update.effective_chat.id):
-            await update.message.reply_text("تعذر ربط الحساب. قد يكون الرابط منتهياً أو مستخدماً؛ أنشئ رابطاً جديداً من زاد.")
+            await update.message.reply_text("تعذر ربط الحساب. قد يكون الرابط منتهياً أو مستخدماً؛ أنشئ رابطاً جديداً من أُنْس.")
             return
         record["linked_vip_active"] = False
         record["linked_vip_checked_at"] = None
         record["google_account_linked"] = True
         write_reminders(records)
-        await update.message.reply_text("تم ربط حساب Google ببوت زاد بنجاح. يمكنك الآن إكمال الاشتراك من صفحة زاد.")
+        await update.message.reply_text("تم ربط حساب Google ببوت أُنْس بنجاح. يمكنك الآن إكمال الاشتراك من صفحة أُنْس.")
     await refresh_access(update.effective_chat.id, record)
     status, _ = access_status(record)
     write_reminders(records)
@@ -284,7 +284,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         restore_chat_reminders(context.application, update.effective_chat.id, record)
         return
 
-    await update.message.reply_text("أهلاً بك في بوت زاد 🌿")
+    await update.message.reply_text("أهلاً بك في بوت أُنْس 🌿")
     await send_access_prompt(update.message, record)
 
 
@@ -638,7 +638,7 @@ async def sync_linked_subscriptions(context: ContextTypes.DEFAULT_TYPE):
             if active:
                 restore_chat_reminders(context.application, chat_id, record)
                 activation_message = (
-                    "تم تفعيل اشتراك زاد Telegram مدى الحياة. اضبط تذكيراتك باستخدام /remind."
+                    "تم تفعيل اشتراك أُنْس Telegram مدى الحياة. اضبط تذكيراتك باستخدام /remind."
                     if record.get("linked_vip_plan") == "telegram_lifetime"
                     else "تم تفعيل اشتراك VIP لحسابك المرتبط. اضبط تذكيراتك باستخدام /remind."
                 )
@@ -651,7 +651,7 @@ async def sync_linked_subscriptions(context: ContextTypes.DEFAULT_TYPE):
                     remove_reminder_jobs(context.application, chat_id, topic)
                 await context.bot.send_message(
                     chat_id=int(chat_id),
-                    text="حالة اشتراك Telegram المرتبط لم تعد نشطة. تحقق من حسابك في زاد.",
+                    text="حالة اشتراك Telegram المرتبط لم تعد نشطة. تحقق من حسابك في أُنْس.",
                 )
         records[chat_id] = record
     if changed:
@@ -681,7 +681,7 @@ def main():
     ):
         application.job_queue.run_repeating(sync_linked_subscriptions, interval=60, first=15)
 
-    LOGGER.info("Zad Telegram bot started.")
+    LOGGER.info("Uns Telegram bot started.")
     application.run_polling()
 
 

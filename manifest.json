@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "زاد | القرآن والأذكار والأدعية",
-  "short_name": "زاد",
+  "name": "أُنْس | طمأنينة وتدبّر",
+  "short_name": "أُنْس",
   "description": "رفيقك اليومي للقرآن الكريم والأذكار والتسبيح والأدعية",
   "lang": "ar",
   "dir": "rtl",
@@ -12,8 +12,14 @@
   "theme_color": "#071a31",
   "icons": [
     {
-      "src": "./assets/icons/icon-192x192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     }

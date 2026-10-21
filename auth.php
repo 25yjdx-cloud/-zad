@@ -552,9 +552,9 @@ if ($action === 'vip-checkout') {
         'currency' => 'EGP',
         'merchant_order_id' => $merchantOrderId,
         'items' => [[
-            'name' => 'Zad VIP ' . $planId,
+            'name' => 'Uns VIP ' . $planId,
             'amount_cents' => $amount * 100,
-            'description' => 'Zad VIP prepaid subscription',
+            'description' => 'Uns VIP prepaid subscription',
             'quantity' => 1,
         ]],
     ]);
@@ -579,7 +579,7 @@ if ($action === 'vip-checkout') {
             'apartment' => 'NA',
             'email' => strtolower((string) $user['email']),
             'floor' => 'NA',
-            'first_name' => $nameParts[0] ?? 'Zad',
+            'first_name' => $nameParts[0] ?? 'Uns',
             'street' => 'NA',
             'building' => 'NA',
             'phone_number' => $method === 'card' ? 'NA' : $phone,

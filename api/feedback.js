@@ -13,7 +13,8 @@ function parseRequestBody(body) {
   return body;
 }
 
-export default async function handler(req, res) {
+export function createFeedbackHandler(environment = process.env) {
+  return async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     sendJson(res, 405, { success: false, error: 'Method not allowed' });
@@ -70,8 +71,8 @@ export default async function handler(req, res) {
     return;
   }
 
-  const scriptUrl = process.env.ZAD_FEEDBACK_SCRIPT_URL;
-  const sharedSecret = process.env.ZAD_FEEDBACK_WEBHOOK_SECRET;
+  const scriptUrl = environment?.ZAD_FEEDBACK_SCRIPT_URL;
+  const sharedSecret = environment?.ZAD_FEEDBACK_WEBHOOK_SECRET;
   if (!scriptUrl || !sharedSecret) {
     sendJson(res, 503, { success: false, error: 'Feedback service is not configured' });
     return;
@@ -126,4 +127,7 @@ export default async function handler(req, res) {
   } catch {
     sendJson(res, 502, { success: false, error: 'Feedback service is unavailable' });
   }
+  };
 }
+
+export default createFeedbackHandler();

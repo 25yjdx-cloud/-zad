@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 import LegacyMarkup from './LegacyMarkup.jsx';
@@ -6,6 +7,14 @@ import Modals from './Modals.jsx';
 import QuranReader from './QuranReader.jsx';
 import Settings from './Settings.jsx';
 import SelfAccountability from './SelfAccountability.jsx';
+import PwaInstallPrompt from './PwaInstallPrompt.jsx';
+import PeriodicReminder from './PeriodicReminder.jsx';
+import AuthEntryPoints from './AuthEntryPoints.jsx';
+import AzkarAudioPlayer from './AzkarAudioPlayer.jsx';
+import TadabburPage from './TadabburPage.jsx';
+import TafsirModal from './TafsirModal.jsx';
+import SurahInfoModal from './SurahInfoModal.jsx';
+import SpiritualMessageModal from './SpiritualMessageModal.jsx';
 
 function MainNavigation() {
   return <LegacyMarkup selector=".main-navigation" />;
@@ -18,67 +27,68 @@ function OtherSections() {
       <LegacyMarkup selector="#tasbeeh-panel" />
       <LegacyMarkup selector="#duas-panel" />
       <LegacyMarkup selector="#telegram-panel" />
+      <TadabburPage />
       <SelfAccountability />
     </>
   );
 }
 
 function MobileNavigation() {
-  return <LegacyMarkup selector=".mobile-bottom-nav" />;
+  if (typeof document === 'undefined') return null;
+  return createPortal(<LegacyMarkup selector=".mobile-bottom-nav" />, document.body);
 }
 
 export default function App() {
   useEffect(() => {
-    const splash = document.querySelector('#app-splash');
-    const ready = {
-      quran: window.__zadHydrationState?.quran === true,
-      profile: window.__zadHydrationState?.profile === true,
+    const refreshLegacyState = (event) => {
+      const keys = event.detail?.keys ?? [];
+      const legacyKeys = keys.filter((key) => !['zad.selfAccountability.v1', 'zad.worshipTracking.v1'].includes(key));
+      if (legacyKeys.length) window.location.reload();
     };
-    let hideTimer = 0;
-    let fallbackTimer = 0;
-    let splashFinished = false;
+    window.addEventListener('uns:cloud-data-restored', refreshLegacyState);
+    return () => window.removeEventListener('uns:cloud-data-restored', refreshLegacyState);
+  }, []);
 
-    function finishSplash() {
-      if (splashFinished || !ready.quran || !ready.profile || !splash) return;
-      splashFinished = true;
-      window.cancelAnimationFrame(hideTimer);
-      hideTimer = window.requestAnimationFrame(() => {
-        splash.classList.add('is-hidden');
-        fallbackTimer = window.setTimeout(() => splash.remove(), 500);
-      });
-    }
-
-    function markReady(part) {
-      ready[part] = true;
-      finishSplash();
-    }
-
-    const onQuranReady = () => markReady('quran');
-    const onProfileReady = () => markReady('profile');
-    window.addEventListener('zad:quran-ready', onQuranReady);
-    window.addEventListener('zad:profile-ready', onProfileReady);
-    finishSplash();
-    import('../legacy/app.js').catch((error) => {
-      console.error('Could not initialize Zad application features:', error);
-      markReady('quran');
-    });
-    const fallback = window.setTimeout(() => {
-      markReady('quran');
-      markReady('profile');
-    }, 15000);
+  useEffect(() => {
+    let previous = window.scrollY;
+    const onScroll = () => {
+      const current = window.scrollY;
+      const movement = current - previous;
+      previous = current;
+      if (Math.abs(movement) < 4) return;
+      if (movement > 0 && current > 12) {
+        document.body.classList.add('app-controls-hidden');
+        document.body.classList.remove('app-scroll-up');
+      } else if (movement < 0) {
+        document.body.classList.remove('app-controls-hidden');
+        document.body.classList.add('app-scroll-up');
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
-      window.removeEventListener('zad:quran-ready', onQuranReady);
-      window.removeEventListener('zad:profile-ready', onProfileReady);
-      window.clearTimeout(fallback);
-      window.clearTimeout(fallbackTimer);
-      window.cancelAnimationFrame(hideTimer);
+      window.removeEventListener('scroll', onScroll);
+      document.body.classList.remove('app-controls-hidden', 'app-scroll-up');
     };
+  }, []);
+
+  useEffect(() => {
+    // React has rendered the reader shell. Never keep the full-screen splash up
+    // while remote app data, profile state, or the Quran search index loads.
+    const splash = document.querySelector('#app-splash');
+    if (splash) {
+      splash.classList.add('is-hidden');
+      window.setTimeout(() => splash.remove(), 500);
+    }
+    import('../legacy/app.js').catch((error) => {
+      console.error('Could not initialize Uns application features:', error);
+    });
   }, []);
 
   return (
     <>
       <LegacyMarkup selector="#app-sidebar" />
       <Header />
+      <AuthEntryPoints />
       <main className="container app-shell">
         <MainNavigation />
         <LegacyMarkup selector="#load-status" />
@@ -90,7 +100,13 @@ export default function App() {
       <Footer />
       <Settings />
       <Modals />
+      <TafsirModal />
+      <SurahInfoModal />
       <MobileNavigation />
+      <PwaInstallPrompt />
+      <PeriodicReminder />
+      <AzkarAudioPlayer />
+      <SpiritualMessageModal />
     </>
   );
 }

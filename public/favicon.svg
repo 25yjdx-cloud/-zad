@@ -1,0 +1,17 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="768" height="768" viewBox="0 0 768 768">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#164535"/>
+      <stop offset="1" stop-color="#071a31"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4dfb1"/>
+      <stop offset="1" stop-color="#bd9760"/>
+    </linearGradient>
+  </defs>
+  <rect width="768" height="768" rx="112" fill="url(#background)"/>
+  <rect x="28" y="28" width="712" height="712" rx="92" fill="none" stroke="url(#gold)" stroke-width="12"/>
+  <circle cx="384" cy="384" r="246" fill="#ffffff08" stroke="#bd9760" stroke-opacity=".45" stroke-width="3"/>
+  <path d="M190 523h388" fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-width="12"/>
+  <text x="384" y="430" fill="url(#gold)" font-family="Tahoma, Arial, sans-serif" font-size="142" font-weight="700" text-anchor="middle">أُنْس</text>
+</svg>

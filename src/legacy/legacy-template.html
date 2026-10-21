@@ -1,11 +1,11 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#123d32">
   <meta name="description" content="رفيقك اليومي للقرآن الكريم والأذكار والتسبيح والأدعية">
-  <title>زاد | القرآن والأذكار والأدعية</title>
+  <title>أُنْس | القرآن والأذكار والأدعية</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="assets/icons/icon-192x192.png">
   <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
@@ -15,12 +15,15 @@
 <body>
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="#" aria-label="زاد، الصفحة الرئيسية">
-        <span class="brand-mark" aria-hidden="true">ز</span>
-        <span><strong>زاد</strong><small>طمأنينةٌ في يومك</small></span>
-      </a>
+      <div class="header-brand-group">
+        <a class="brand" href="#" aria-label="أُنْس، الصفحة الرئيسية">
+          <span class="brand-mark" aria-hidden="true">أ</span>
+          <span><strong>أُنْس</strong><small>طُمأنينة وتدبّر</small></span>
+        </a>
+        <div id="auth-header-slot" class="auth-header-slot"></div>
+      </div>
       <div class="header-actions">
-        <button id="sidebar-open" class="sidebar-open-button" type="button" aria-controls="app-sidebar" aria-expanded="false" aria-label="فتح القائمة الجانبية">
+        <button id="sidebar-open" class="header-settings-button header-sidebar-button" type="button" aria-controls="app-sidebar" aria-expanded="false" aria-label="فتح القائمة الرئيسية" title="القائمة الرئيسية">
           <span aria-hidden="true">☰</span>
         </button>
         <button id="header-settings-open" class="header-settings-button" type="button" data-bs-toggle="modal" data-bs-target="#settings-modal" aria-label="فتح الإعدادات" title="الإعدادات">
@@ -35,22 +38,29 @@
     <div class="sidebar-panel">
       <div class="sidebar-heading">
         <div>
-          <p class="section-kicker mb-1">زاد</p>
+          <p class="section-kicker mb-1">أُنْس</p>
           <h2>القائمة الرئيسية</h2>
         </div>
         <button id="sidebar-close" class="sidebar-close-button" type="button" aria-label="إغلاق القائمة">×</button>
       </div>
+      <div id="auth-sidebar-slot" class="auth-sidebar-slot"></div>
       <nav class="sidebar-navigation" aria-label="أقسام التطبيق">
         <button class="sidebar-nav-link is-active" type="button" data-tab-target="#quran-panel"><span aria-hidden="true">۞</span> القرآن الكريم</button>
+        <button class="sidebar-nav-link" type="button" data-tab-target="#tadabbur-panel" aria-label="فتح أُنْس وتدبّر"><span aria-hidden="true">✧</span> أُنْس وتدبّر</button>
         <button class="sidebar-nav-link" type="button" data-tab-target="#azkar-panel"><span aria-hidden="true">✧</span> الأذكار</button>
         <button class="sidebar-nav-link" type="button" data-tab-target="#tasbeeh-panel"><span aria-hidden="true">◉</span> المسبحة</button>
-        <button class="sidebar-nav-link" type="button" data-tab-target="#duas-panel"><span aria-hidden="true">♡</span> الأدعية</button>
+        <button id="duas-sidebar-tab" class="sidebar-nav-link" type="button" data-bs-toggle="pill" data-bs-target="#duas-panel" data-tab-target="#duas-panel" role="tab" aria-controls="duas-panel" aria-selected="false"><span aria-hidden="true">♡</span> الأدعية ودعاء الختم</button>
         <button class="sidebar-nav-link" type="button" data-tab-target="#telegram-panel"><span aria-hidden="true">➤</span> خدمة Telegram</button>
         <button id="memorization-open" class="sidebar-nav-link" type="button" data-open-memorization><span aria-hidden="true">۞</span> التحفيظ واختبار الحفظ</button>
-        <button class="sidebar-nav-link" type="button" data-tab-target="#accountability-panel"><span aria-hidden="true">✦</span> حاسب نفسك</button>
+        <button class="sidebar-nav-link" type="button" data-open-surah-info><span aria-hidden="true">ⓘ</span> معلومات ومقاصد السورة</button>
+        <button class="sidebar-nav-link" type="button" data-open-spiritual-message><span aria-hidden="true">♡</span> رسالة أُنس</button>
+        <button class="sidebar-nav-link" type="button" data-tab-target="#accountability-panel"><span aria-hidden="true">✦</span> مراقبة الذات</button>
       </nav>
       <div class="sidebar-divider"></div>
       <nav class="sidebar-navigation" aria-label="أدوات التطبيق">
+        <button id="fit-to-screen-toggle-sidebar" class="sidebar-nav-link" type="button" data-reader-fit-toggle aria-pressed="false" aria-label="ملاءمة صفحة المصحف للشاشة" title="ملاءمة الصفحة">
+          <span aria-hidden="true">⛶</span><span data-reader-fit-label>ملاءمة الصفحة</span>
+        </button>
         <button id="theme-toggle" class="sidebar-nav-link" type="button" aria-label="تفعيل الوضع الليلي"><span aria-hidden="true">◐</span><span id="theme-toggle-label">الوضع الليلي</span></button>
         <button id="account-open" class="sidebar-nav-link" type="button" data-bs-toggle="modal" data-bs-target="#account-modal"><span aria-hidden="true">👤</span> الملف الشخصي</button>
         <button id="settings-open" class="sidebar-nav-link" type="button" data-bs-toggle="modal" data-bs-target="#settings-modal"><span aria-hidden="true">⚙</span> الإعدادات والتنبيهات</button>
@@ -74,14 +84,15 @@
         <button class="nav-link" id="tasbeeh-tab" data-bs-toggle="pill" data-bs-target="#tasbeeh-panel" type="button" role="tab" aria-controls="tasbeeh-panel" aria-selected="false">
           <span aria-hidden="true">◉</span> المسبحة
         </button>
-        <button class="nav-link" id="duas-tab" data-bs-toggle="pill" data-bs-target="#duas-panel" type="button" role="tab" aria-controls="duas-panel" aria-selected="false">
-          <span aria-hidden="true">♡</span> الأدعية ودعاء الختم
+        <button class="nav-link" id="tadabbur-tab" data-bs-toggle="pill" data-bs-target="#tadabbur-panel" type="button" role="tab" aria-controls="tadabbur-panel" aria-selected="false">
+          <span aria-hidden="true">✧</span> أُنْس وتدبّر
         </button>
+
         <button class="nav-link" id="telegram-tab" data-bs-toggle="pill" data-bs-target="#telegram-panel" type="button" role="tab" aria-controls="telegram-panel" aria-selected="false">
           <span aria-hidden="true">➤</span> خدمة Telegram
         </button>
         <button class="nav-link accountability-entry-tab" id="accountability-tab" data-bs-toggle="pill" data-bs-target="#accountability-panel" data-tab-target="#accountability-panel" type="button" role="tab" aria-controls="accountability-panel" aria-selected="false">
-          <span aria-hidden="true">✦</span> حاسب نفسك
+          <span aria-hidden="true">✦</span> مراقبة الذات
         </button>
       </div>
     </nav>
@@ -112,52 +123,59 @@
           </aside>
 
           <div class="reader-column">
-            <div class="reader-actions">
-              <details class="reader-quick-menu">
-                <summary class="reader-quick-menu-trigger" aria-label="فتح أدوات المصحف">
-                  <span aria-hidden="true">☰</span><span>أدوات المصحف</span>
-                </summary>
-                <div class="reader-quick-menu-panel" aria-label="أدوات قراءة المصحف">
-                  <section class="quran-search" aria-labelledby="quran-search-title">
-                    <label id="quran-search-title" for="quran-text-search">بحث في نص القرآن</label>
-                    <div class="quran-search-control">
-                      <input id="quran-text-search" class="form-control" type="search" placeholder="اكتب كلمة أو عبارة من القرآن..." autocomplete="off" aria-controls="quran-search-results">
-                      <button id="quran-search-clear" type="button" aria-label="مسح بحث القرآن" hidden>مسح</button>
-                    </div>
-                    <p id="quran-search-status" role="status" aria-live="polite">ابحث في نص الآيات العربية.</p>
-                    <div id="quran-search-results" class="quran-search-results" aria-label="نتائج البحث"></div>
-                  </section>
-                  <button id="reader-memorization-open" class="tool-button" type="button" data-open-memorization><span aria-hidden="true">۞</span> التحفيظ واختبار الحفظ</button>
-                  <button id="open-quran-index" class="tool-button" type="button"><span aria-hidden="true">☷</span> الفهرس</button>
-                  <button id="save-bookmark" class="tool-button primary-tool" type="button"><span aria-hidden="true">☆</span> حفظ علامة</button>
-                  <button id="go-bookmark" class="tool-button" type="button" disabled><span aria-hidden="true">↗</span> انتقال للعلامة</button>
-                  <button id="manage-bookmarks" class="tool-button" type="button"><span aria-hidden="true">▤</span> إدارة العلامات <span id="bookmark-count" class="bookmark-count">0</span></button>
-                  <button id="auto-page-toggle" class="tool-button" type="button" aria-pressed="false">▶ بدء التقليب</button>
-                  <label class="auto-page-speed" for="auto-page-speed">مدة الصفحة بالثواني</label>
-                  <input id="auto-page-speed" class="form-control form-control-sm" type="number" min="1" max="86400" step="1" value="45" inputmode="numeric" aria-label="مدة عرض الصفحة بالثواني">
-                  <button id="wake-lock-toggle" class="tool-button" type="button" aria-pressed="false">☼ إبقاء الشاشة مستيقظة</button>
-                  <button id="zoom-toggle" class="tool-button" type="button" aria-pressed="false">⌕ تكبير الصفحة</button>
-                  <button id="fit-to-screen-toggle" class="tool-button" type="button" aria-pressed="false">عرض الصفحة بالكامل (Fit to Screen)</button>
-                  <label class="brightness-menu-control" for="brightness-range">
-                    <span>سطوع صفحة المصحف</span>
-                    <input id="brightness-range" type="range" min="45" max="125" value="100" aria-label="سطوع صفحة المصحف">
-                  </label>
-                </div>
-              </details>
-            </div>
-
             <section id="quran-reader" class="quran-reader" aria-label="عارض صفحات المصحف">
               <div class="reader-toolbar">
-                <div class="page-navigation">
-                  <button id="quran-previous" class="page-nav-button" type="button" aria-label="الصفحة السابقة">‹</button>
+                <div class="reader-actions">
+                  <details class="reader-quick-menu">
+                    <summary class="reader-quick-menu-trigger" aria-label="فتح أدوات المصحف">
+                      <span aria-hidden="true">⋯</span><span>أدوات المصحف</span>
+                    </summary>
+                    <div class="reader-quick-menu-panel" aria-label="أدوات قراءة المصحف">
+                      <section class="quran-search" aria-labelledby="quran-search-title">
+                        <label id="quran-search-title" for="quran-text-search">بحث في نص القرآن</label>
+                        <div class="quran-search-control">
+                          <input id="quran-text-search" class="form-control" type="search" placeholder="اكتب كلمة أو عبارة من القرآن..." autocomplete="off" aria-controls="quran-search-results">
+                          <button id="quran-search-clear" type="button" aria-label="مسح بحث القرآن" hidden>مسح</button>
+                        </div>
+                        <p id="quran-search-status" role="status" aria-live="polite">ابحث في نص الآيات العربية.</p>
+                        <div id="quran-search-results" class="quran-search-results" aria-label="نتائج البحث"></div>
+                      </section>
+                      <button id="reader-memorization-open" class="tool-button" type="button" data-open-memorization><span aria-hidden="true">۞</span> التحفيظ واختبار الحفظ</button>
+                      <button id="open-quran-index" class="tool-button" type="button"><span aria-hidden="true">☷</span> الفهرس</button>
+                      <button id="quran-text-toggle-menu" class="tool-button" type="button" data-quran-text-toggle aria-pressed="false"><span aria-hidden="true">آ</span> عرض نص الآيات</button>
+                      <button type="button" class="tool-button" data-open-surah-info>ⓘ معلومات ومقاصد السورة</button>
+                      <button id="save-bookmark" class="tool-button primary-tool" type="button"><span aria-hidden="true">☆</span> حفظ علامة</button>
+                      <button id="go-bookmark" class="tool-button" type="button" disabled><span aria-hidden="true">↗</span> انتقال للعلامة</button>
+                      <button id="manage-bookmarks" class="tool-button" type="button"><span aria-hidden="true">▤</span> إدارة العلامات <span id="bookmark-count" class="bookmark-count">0</span></button>
+                      <button id="auto-page-toggle" class="tool-button" type="button" aria-pressed="false">▶ بدء التقليب</button>
+                      <label class="auto-page-speed" for="auto-page-speed">مدة الصفحة بالثواني</label>
+                      <input id="auto-page-speed" class="form-control form-control-sm" type="number" min="1" max="86400" step="1" value="45" inputmode="numeric" aria-label="مدة عرض الصفحة بالثواني">
+                      <button id="wake-lock-toggle" class="tool-button" type="button" aria-pressed="false">☼ إبقاء الشاشة مستيقظة</button>
+                      <label class="brightness-menu-control" for="brightness-range">
+                        <span>سطوع صفحة المصحف</span>
+                        <input id="brightness-range" type="range" min="45" max="125" value="100" aria-label="سطوع صفحة المصحف">
+                      </label>
+                    </div>
+                  </details>
+                </div>
+                    <div class="page-navigation">
+                  <button id="quran-next" class="page-nav-button" type="button" aria-label="الصفحة التالية">‹</button>
                   <label class="visually-hidden" for="quran-page-number">رقم الصفحة</label>
                   <input id="quran-page-number" class="page-number-input" type="number" min="1" value="1" inputmode="numeric">
                   <span class="page-divider">/</span>
                   <span id="quran-page-total" class="page-total">604</span>
-                  <button id="quran-next" class="page-nav-button" type="button" aria-label="الصفحة التالية">›</button>
+                  <button id="quran-previous" class="page-nav-button" type="button" aria-label="الصفحة السابقة">›</button>
+                  <button id="quran-search-open" class="reader-tool-button reader-search-trigger" type="button" aria-label="بحث مباشر في القرآن" title="بحث في القرآن">
+                    <span aria-hidden="true">🔍</span><span>بحث</span>
+                  </button>
                 </div>
                 <div class="reader-settings">
-                  <button id="focus-toggle" class="reader-tool-button" type="button" aria-label="تفعيل وضع التركيز" title="وضع التركيز"><span aria-hidden="true">⛶</span></button>
+                  <button id="quran-text-toggle" class="reader-tool-button reader-text-toggle" type="button" data-quran-text-toggle aria-pressed="false" aria-label="عرض نص الآيات" title="عرض نص الآيات">آ</button>
+                  <button id="quran-fullscreen-toggle" class="reader-tool-button reader-fit-toggle" type="button" data-reader-fit-toggle aria-pressed="false" aria-label="ملاءمة الصفحة وملء الشاشة" title="ملاءمة الصفحة وملء الشاشة">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
                 </div>
               </div>
               <div class="mushaf-viewport">
@@ -170,7 +188,8 @@
                     </svg>
                     <span>محفوظة</span>
                   </div>
-                  <img id="quran-page-image" class="quran-page-image" alt="صفحة المصحف" fetchpriority="high">
+                  <img id="quran-page-image" class="quran-page-image" src="https://quran.ksu.edu.sa/png_big/1.png" alt="صفحة المصحف" fetchpriority="high">
+                  <section id="quran-text-page" class="quran-text-page" aria-label="آيات الصفحة"></section>
                   <p id="quran-page-error" class="reader-message" role="status" hidden></p>
                 </div>
                 <button id="quran-floating-next" class="floating-page-nav floating-page-next" type="button" aria-label="الصفحة التالية">›</button>
@@ -200,31 +219,13 @@
             <p class="section-description">اختر قسماً لعرض أذكاره، واضغط على العداد بعد كل مرة.</p>
           </div>
         </div>
-        <section class="adhkar-player" aria-labelledby="adhkar-player-title">
-          <div class="adhkar-player-heading">
-            <div>
-              <p class="section-kicker mb-1">استمع وتابع وردك</p>
-              <h2 id="adhkar-player-title">مشغل الأذكار</h2>
-            </div>
-            <span id="adhkar-player-badge" class="adhkar-player-badge">جاهز لإضافة الصوت</span>
-          </div>
-          <div class="adhkar-track-select" role="group" aria-label="اختيار أذكار للاستماع">
-            <button id="adhkar-track-morning" class="adhkar-track-button is-active" type="button" aria-pressed="true">أذكار الصباح</button>
-            <button id="adhkar-track-evening" class="adhkar-track-button" type="button" aria-pressed="false">أذكار المساء</button>
-          </div>
-          <div class="adhkar-player-controls">
-            <button id="adhkar-play-toggle" class="adhkar-play-button" type="button" aria-label="تشغيل الأذكار" disabled>▶</button>
-            <div class="adhkar-progress-group">
-              <label class="visually-hidden" for="adhkar-progress">موضع التشغيل</label>
-              <input id="adhkar-progress" type="range" min="0" max="0" value="0" step="1" disabled>
-              <div class="adhkar-time-row"><span id="adhkar-current-time">٠:٠٠</span><span id="adhkar-duration">٠:٠٠</span></div>
-            </div>
-          </div>
-          <p id="adhkar-player-status" class="adhkar-player-status" role="status" aria-live="polite"></p>
-          <audio id="adhkar-audio" preload="none" playsinline></audio>
-        </section>
+        <p id="azkar-audio-recommendation" class="azkar-audio-recommendation" role="status"></p>
         <div class="daily-progress" aria-label="إنجاز الأذكار اليوم">
-          <div class="daily-progress-heading"><strong id="azkar-progress-label">0% مكتمل اليوم</strong><span id="azkar-progress-count">0 من 0</span></div>
+          <div class="daily-progress-heading">
+            <strong id="azkar-progress-label">0% مكتمل اليوم</strong>
+            <span id="azkar-progress-count">0 من 0</span>
+            <button id="azkar-reset-all" class="azkar-reset-action" type="button">تصفير الكل</button>
+          </div>
           <div class="progress" role="progressbar" aria-label="نسبة إكمال الأذكار" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             <div id="azkar-progress-bar" class="progress-bar"></div>
           </div>
@@ -234,9 +235,15 @@
 
       <section class="tab-pane fade" id="tasbeeh-panel" role="tabpanel" aria-labelledby="tasbeeh-tab" tabindex="0">
         <div class="section-intro">
-          <div>
+          <div class="tasbeeh-title-row">
             <p class="section-kicker">سَبِّحْ واذكر</p>
-            <h1>المسبحة الإلكترونية</h1>
+            <div class="tasbeeh-heading-line">
+              <h2>المسبحة الإلكترونية</h2>
+              <div class="tasbeeh-title-navigation" role="group" aria-label="التنقل بين الأذكار">
+                <button id="tasbeeh-previous-phrase" type="button" aria-label="الذكر السابق" title="الذكر السابق">‹</button>
+                <button id="tasbeeh-next-phrase" type="button" aria-label="الذكر التالي" title="الذكر التالي">›</button>
+              </div>
+            </div>
             <p class="section-description">عدادك محفوظ تلقائياً على هذا الجهاز.</p>
           </div>
         </div>
@@ -266,7 +273,7 @@
         </div>
       </section>
 
-      <section class="tab-pane fade" id="duas-panel" role="tabpanel" aria-labelledby="duas-tab" tabindex="0">
+      <section class="tab-pane fade" id="duas-panel" role="tabpanel" aria-labelledby="duas-sidebar-tab" tabindex="0">
         <div class="section-intro">
           <div>
             <p class="section-kicker">مناجاة ودعاء</p>
@@ -303,8 +310,8 @@
         <div class="telegram-service-page">
           <header class="telegram-service-hero">
             <span class="telegram-service-icon" aria-hidden="true">➤</span>
-            <p class="section-kicker">زاد معك أينما كنت</p>
-            <h1>خدمة بوت زاد على Telegram</h1>
+            <p class="section-kicker">أُنْس معك أينما كنت</p>
+            <h1>خدمة بوت أُنْس على Telegram</h1>
             <p>تذكيرات يومية تساعدك على المحافظة على ورد القرآن وأذكار الصباح والمساء، مباشرةً عبر Telegram.</p>
             <div class="telegram-service-actions">
               <a id="telegram-open-bot" class="btn btn-success" href="#" target="_blank" rel="noopener noreferrer" hidden>ابدأ مع بوت تليجرام / Start Telegram Bot</a>
@@ -353,7 +360,7 @@
           <aside class="telegram-service-note">
             <strong>طريقة البدء</strong>
             <ol>
-              <li>افتح بوت زاد الرسمي من الزر أعلاه.</li>
+              <li>افتح بوت أُنْس الرسمي من الزر أعلاه.</li>
               <li>اضغط Start واتبع تعليمات إعداد تذكيراتك.</li>
               <li>تظهر مزايا الاشتراك إن كانت مفعّلة على الخادم.</li>
             </ol>
@@ -379,7 +386,7 @@
   </main>
 
   <footer class="site-footer">
-    <p class="site-footer-message">تقبل الله طاعتكم</p>
+    <p class="site-footer-message">تقبل الله صالح الأعمال</p>
     <button id="developer-info-open" class="developer-info-chip" type="button" data-bs-toggle="modal" data-bs-target="#developer-modal" aria-label="عن المطور">
       <span aria-hidden="true">✦</span> عن المطور
     </button>
@@ -448,7 +455,7 @@
         <div class="modal-header">
           <div>
             <p class="section-kicker mb-1">انشر الخير</p>
-            <h2 id="share-modal-title" class="modal-title h5">مشاركة تطبيق زاد</h2>
+            <h2 id="share-modal-title" class="modal-title h5">مشاركة تطبيق أُنْس</h2>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
         </div>
@@ -545,7 +552,7 @@
           </section>
 
           <section id="support-settings-section" class="settings-card">
-            <h3 class="h6 settings-heading">ساهم في تطوير وتوسيع زاد</h3>
+            <h3 class="h6 settings-heading">ساهم في تطوير وتوسيع أُنْس</h3>
             <div class="support-tiers">
               <div class="support-tiers-group">
                 <button class="support-tier" type="button" data-support-amount="50" aria-label="اختيار مساند، ٥٠ جنيهاً مصرياً" aria-pressed="false">
@@ -621,7 +628,7 @@
         <div class="modal-header">
           <div>
             <p class="section-kicker mb-1">رأيك يساهم في التطوير</p>
-            <h2 id="feedback-modal-title" class="modal-title h5">شاركنا رأيك ومقترحاتك لتطوير زاد</h2>
+            <h2 id="feedback-modal-title" class="modal-title h5">شاركنا رأيك ومقترحاتك لتطوير أُنْس</h2>
           </div>
           <button id="feedback-modal-close" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
         </div>
@@ -651,7 +658,7 @@
           <div class="modal-header">
             <div>
               <p class="section-kicker mb-1">مساهمة آمنة</p>
-              <h2 id="support-title" class="modal-title h5">ساهم في تطوير وتوسيع زاد</h2>
+              <h2 id="support-title" class="modal-title h5">ساهم في تطوير وتوسيع أُنْس</h2>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
           </div>
@@ -719,7 +726,7 @@
           <div class="modal-header">
             <div>
               <p class="section-kicker mb-1">عرض خاص لمتابعي البوت</p>
-              <h2 id="telegram-promo-title" class="modal-title h5">اشتراك زاد Telegram مدى الحياة</h2>
+              <h2 id="telegram-promo-title" class="modal-title h5">اشتراك أُنْس Telegram مدى الحياة</h2>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق العرض"></button>
           </div>
@@ -753,8 +760,8 @@
           </div>
           <div class="modal-body">
             <div class="telegram-confetti" aria-hidden="true">✦　✧　✦　✧　✦</div>
-            <p>أصبح بوت زاد جاهزاً لإرسال وردك وتذكيراتك. افتح Telegram واضبط مواعيدك من /remind.</p>
-            <a id="telegram-success-start" class="btn btn-success w-100" href="#" target="_blank" rel="noopener noreferrer" hidden>فتح بوت زاد</a>
+            <p>أصبح بوت أُنْس جاهزاً لإرسال وردك وتذكيراتك. افتح Telegram واضبط مواعيدك من /remind.</p>
+            <a id="telegram-success-start" class="btn btn-success w-100" href="#" target="_blank" rel="noopener noreferrer" hidden>فتح بوت أُنْس</a>
           </div>
         </div>
       </div>
@@ -762,11 +769,11 @@
 
     <aside id="support-prompt" class="support-prompt" role="region" aria-labelledby="support-prompt-title" aria-live="polite" hidden>
       <div class="support-prompt-copy">
-        <strong id="support-prompt-title">ساهم معنا في تطوير الخير واستمرار زاد</strong>
+        <strong id="support-prompt-title">ساهم معنا في تطوير الخير واستمرار أُنْس</strong>
         <span>بدعمك نواصل تقديم القرآن والأذكار للجميع.</span>
       </div>
       <div class="support-prompt-actions">
-        <button id="support-prompt-open" class="btn btn-sm btn-success" type="button">ادعم زاد</button>
+        <button id="support-prompt-open" class="btn btn-sm btn-success" type="button">ادعم أُنْس</button>
         <button id="closeBtn" class="support-prompt-close" type="button" aria-label="إغلاق">إغلاق</button>
       </div>
     </aside>
@@ -840,6 +847,10 @@
       <span aria-hidden="true">۞</span>
       <small>القرآن</small>
     </button>
+    <button type="button" data-tab-target="#tadabbur-panel" class="mobile-nav-item" aria-label="أُنْس وتدبّر">
+      <span aria-hidden="true">✧</span>
+      <small>أُنْس وتدبّر</small>
+    </button>
     <button type="button" data-tab-target="#azkar-panel" class="mobile-nav-item" aria-label="الأذكار">
       <span aria-hidden="true">✧</span>
       <small>الأذكار</small>
@@ -848,21 +859,20 @@
       <span aria-hidden="true">◉</span>
       <small>المسبحة</small>
     </button>
+
     <button type="button" data-tab-target="#duas-panel" class="mobile-nav-item" aria-label="الأدعية">
       <span aria-hidden="true">♡</span>
       <small>الأدعية</small>
+    </button>
+    <button type="button" data-open-memorization class="mobile-nav-item memorization-mobile-item" aria-label="التحفيظ واختبار الحفظ">
+      <span aria-hidden="true">۞</span>
+      <small>التحفيظ</small>
     </button>
     <button type="button" data-bs-toggle="modal" data-bs-target="#settings-modal" class="mobile-nav-item" aria-label="الإعدادات">
       <span aria-hidden="true">⚙</span>
       <small>الإعدادات</small>
     </button>
-    <button type="button" data-bs-toggle="modal" data-bs-target="#developer-modal" class="mobile-nav-item developer-mobile-item" aria-label="عن المطور">
-      <span aria-hidden="true">✦</span>
-      <small>المطور</small>
-    </button>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="main.js?v=20261013"></script>
 </body>
 </html>

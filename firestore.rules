@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/data/{dataKey} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.updatedAt == request.time
+        && ((request.resource.data.keys().hasOnly(['value', 'updatedAt'])
+          && request.resource.data.value is string
+          && request.resource.data.value.size() <= 300000)
+        || (dataKey == 'bookmarks'
+          && request.resource.data.kind == 'reader_state'
+          && request.resource.data.keys().hasOnly([
+            'kind', 'pageBookmarks', 'ayahBookmarks', 'readingPosition', 'updatedAt'
+          ])
+          && request.resource.data.pageBookmarks is list
+          && request.resource.data.pageBookmarks.size() <= 500
+          && request.resource.data.ayahBookmarks is list
+          && request.resource.data.ayahBookmarks.size() <= 500)
+        || (dataKey.matches('bookmark_ayah_[1-9][0-9]*_[1-9][0-9]*')
+          && request.resource.data.kind == 'ayah'
+          && request.resource.data.keys().hasOnly([
+            'kind', 'surah', 'ayah', 'surahName', 'text', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.surah is int
+          && request.resource.data.surah >= 1
+          && request.resource.data.surah <= 114
+          && request.resource.data.ayah is int
+          && request.resource.data.ayah >= 1
+          && request.resource.data.surahName is string
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 3000));
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+    // Keep existing appData records accessible while users move to /data.
+    match /users/{userId}/appData/{dataKey} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['value', 'updatedAt'])
+        && request.resource.data.value is string
+        && request.resource.data.value.size() <= 300000
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+    match /users/{userId}/settings/{settingId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.updatedAt == request.time
+        && ((settingId == 'notifications'
+          && request.resource.data.keys().hasOnly(['reminders', 'permission', 'timeZone', 'lastSent', 'updatedAt'])
+          && request.resource.data.permission in ['default', 'granted', 'denied']
+          && request.resource.data.reminders is map
+          && request.resource.data.timeZone is string
+          && request.resource.data.timeZone.size() <= 80)
+        || (settingId.matches('device-[A-Za-z0-9_-]{8,80}')
+          && request.resource.data.keys().hasOnly(['token', 'platform', 'updatedAt'])
+          && request.resource.data.token is string
+          && request.resource.data.token.size() <= 4096
+          && request.resource.data.platform is string
+          && request.resource.data.platform.size() <= 40));
+    }
+    match /users/{userId}/worship/{recordId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && recordId in ['accountability', 'tracking']
+        && request.resource.data.keys().hasOnly(['value', 'updatedAt'])
+        && request.resource.data.value is string
+        && request.resource.data.value.size() <= 300000
+        && request.resource.data.updatedAt == request.time;
+    }
+    match /users/{userId}/bookmarks/{bookmarkId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.updatedAt == request.time
+        && ((request.resource.data.kind == 'ayah'
+          && request.resource.data.keys().hasOnly([
+            'kind', 'surah', 'ayah', 'surahName', 'text', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.surah is int
+          && request.resource.data.surah >= 1
+          && request.resource.data.surah <= 114
+          && request.resource.data.ayah is int
+          && request.resource.data.ayah >= 1
+          && request.resource.data.surahName is string
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 3000)
+        || (request.resource.data.kind == 'reader_state'
+          && request.resource.data.keys().hasOnly([
+            'kind', 'pageBookmarks', 'ayahBookmarks', 'readingPosition', 'updatedAt'
+          ])
+          && request.resource.data.pageBookmarks is list
+          && request.resource.data.pageBookmarks.size() <= 500
+          && request.resource.data.ayahBookmarks is list
+          && request.resource.data.ayahBookmarks.size() <= 500));
+    }
+  }
+}

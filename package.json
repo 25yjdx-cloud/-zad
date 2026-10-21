@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "icons:generate": "node scripts/generate-icons.mjs",
+    "data:import": "node scripts/import-quranpedia-data.mjs",
     "build": "npm run icons:generate && node scripts/build-pages.mjs",
     "build:pages": "npm run build",
     "preview": "vite preview"
@@ -14,10 +15,12 @@
     "@vitejs/plugin-react": "^4.7.0",
     "javascript-obfuscator": "^4.1.1",
     "sharp": "^0.35.5",
-    "vite": "^6.4.1"
+    "vite": "^6.4.1",
+    "vite-plugin-pwa": "^2.0.0"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
+    "firebase": "^13.0.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   }
