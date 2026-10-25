@@ -11,6 +11,7 @@ import {
   normalizeReminderTime,
 } from '../services/reminderTime.js';
 import { parseStoredJson, serializeStoredJson } from '../services/storage.js';
+import { cacheOfflineAzkar, getReadingProgress } from '../services/unsDatabase.js';
 import { APP_VERSION } from '../config/appVersion.js';
 import { installOverlayFallback } from './overlay-fallback.js';
 import { auth } from '../firebase.js';
@@ -3322,7 +3323,10 @@ try {
   })).sort((left, right) => left.id - right.id);
   if (quranSearchReady && quranTextSearchInput.value) renderQuranSearchResults();
 
-  const savedPosition = readStorage(STORAGE_KEYS.lastRead, { page: 1 });
+  const indexedProgress = await getReadingProgress().catch(() => null);
+  const savedPosition = indexedProgress?.page
+    ? indexedProgress
+    : readStorage(STORAGE_KEYS.lastRead, { page: 1 });
   const initialPage = Number.isInteger(savedPosition?.page) && savedPosition.page >= 1 && savedPosition.page <= pageCount
     ? savedPosition.page
     : 1;
@@ -3330,6 +3334,7 @@ try {
   renderIndex();
   azkarData = data.azkar ?? data.Azkar;
   renderAzkar(azkarData);
+  void cacheOfflineAzkar(azkarData).catch(() => { /* The service-worker copy remains the offline fallback. */ });
   renderTasbeeh(data.tasbeeh ?? data.Tasbeeh);
   try {
     const duasResponse = await fetchApp('duas.json', { headers: { Accept: 'application/json' } });

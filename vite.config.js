@@ -196,6 +196,7 @@ export default defineConfig({
         globIgnores: [
           '**/*.php',
           '**/.htaccess',
+          '**/audio/azkar/**',
           '**/quran-text.json',
           '**/data/tafsir-muyassar.json',
           '**/data/tafsir-sharawi.json',
@@ -213,13 +214,13 @@ export default defineConfig({
           },
           {
             urlPattern: ({ url }) => url.origin === self.location.origin
-              && /(?:^|\/)audio\/azkar\/(?:20|22)\.mp3$/i.test(url.pathname),
+              && /(?:^|\/)audio\/azkar\/[^/]+\.mp3$/i.test(url.pathname),
             handler: 'CacheFirst',
             options: {
               cacheName: 'zad-azkar-audio-v1',
               cacheableResponse: { statuses: [200] },
               expiration: {
-                maxEntries: 2,
+                maxEntries: 24,
                 maxAgeSeconds: 365 * 24 * 60 * 60,
               },
             },

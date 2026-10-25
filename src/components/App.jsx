@@ -15,6 +15,8 @@ import TadabburPage from './TadabburPage.jsx';
 import TafsirModal from './TafsirModal.jsx';
 import SurahInfoModal from './SurahInfoModal.jsx';
 import SpiritualMessageModal from './SpiritualMessageModal.jsx';
+import AppSharePrompt from './AppSharePrompt.jsx';
+import { initializeUnsDatabase } from '../services/unsDatabase.js';
 
 function MainNavigation() {
   return <LegacyMarkup selector=".main-navigation" />;
@@ -79,6 +81,7 @@ export default function App() {
       splash.classList.add('is-hidden');
       window.setTimeout(() => splash.remove(), 500);
     }
+    void initializeUnsDatabase().catch(() => { /* Quran reading continues with its local-storage fallback. */ });
     import('../legacy/app.js').catch((error) => {
       console.error('Could not initialize Uns application features:', error);
     });
@@ -107,6 +110,7 @@ export default function App() {
       <PeriodicReminder />
       <AzkarAudioPlayer />
       <SpiritualMessageModal />
+      <AppSharePrompt />
     </>
   );
 }

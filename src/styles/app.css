@@ -190,7 +190,7 @@ button {
 
 .tour-shade {
   position: fixed;
-  background: rgb(9 20 16 / 68%);
+  background: transparent;
   pointer-events: auto;
 }
 
@@ -8207,4 +8207,198 @@ body.spiritual-message-open { overflow: hidden; }
   .accountability-floating-badge {
     z-index: 99998 !important;
   }
+}
+
+/* Keep the fixed navigation below dialogs and make direction changes smooth. */
+.mobile-bottom-nav {
+  z-index: 1000 !important;
+  transition: transform 0.3s ease-in-out !important;
+}
+body.app-controls-hidden .mobile-bottom-nav {
+  transform: translateY(100%) !important;
+}
+body.app-scroll-up .mobile-bottom-nav {
+  transform: translateY(0) !important;
+  transition: transform 0.3s ease-in-out !important;
+}
+
+/* Active overlays sit above navigation, widgets, and the drawer. */
+.modal-backdrop,
+.auth-modal-backdrop,
+.tafsir-backdrop,
+.surah-info-backdrop,
+.accountability-dialog-backdrop,
+.periodic-reminder-backdrop,
+.pwa-install-backdrop,
+.spiritual-message-backdrop {
+  z-index: 100099 !important;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.onboarding-tour {
+  z-index: 100099 !important;
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.onboarding-tour .tour-shade {
+  background: transparent !important;
+}
+.modal { z-index: 100100 !important; }
+.pwa-install-prompt { z-index: 100100 !important; }
+
+/* Keep the Quran controls contained on narrow screens. */
+.reader-toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+.reader-toolbar > .reader-actions,
+.reader-toolbar > .page-navigation,
+.reader-toolbar > .reader-settings {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+}
+.reader-toolbar > .page-navigation { flex-wrap: nowrap; white-space: nowrap; }
+.reader-toolbar .page-navigation > * { flex: 0 0 auto; white-space: nowrap; }
+.reader-toolbar .page-number-input { box-sizing: border-box; flex: 0 0 3.3rem; }
+.reader-toolbar button,
+.reader-toolbar input { max-width: 100%; box-sizing: border-box; flex-shrink: 0; }
+@media (max-width: 399.98px) {
+  .reader-toolbar { gap: 3px; padding: 4px 6px; }
+  .reader-toolbar > .reader-actions,
+  .reader-toolbar > .reader-settings { flex: 0 1 auto; }
+  .reader-toolbar > .page-navigation { flex: 0 0 auto; }
+}
+
+.app-share-prompt-backdrop {
+  position: fixed;
+  z-index: 100110;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 1rem;
+  background: rgb(7 18 14 / 76%);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  overscroll-behavior: contain;
+}
+.app-share-prompt-backdrop.is-closing { animation: app-share-prompt-backdrop-exit 180ms ease-in both; }
+.app-share-prompt-dialog {
+  position: relative;
+  width: min(100%, 31rem);
+  max-height: min(90vh, 42rem);
+  max-height: min(90dvh, 42rem);
+  overflow-y: auto;
+  padding: clamp(1.5rem, 6vw, 2.4rem);
+  border: 1px solid rgb(222 188 123 / 62%);
+  border-radius: 1.5rem;
+  background: linear-gradient(145deg, rgb(29 61 48 / 96%), rgb(14 33 27 / 98%));
+  color: #fffaf0;
+  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 48%), inset 0 1px rgb(255 255 255 / 12%);
+  text-align: center;
+  animation: app-share-prompt-enter 220ms ease-out both;
+}
+.app-share-prompt-dialog.is-closing { animation: app-share-prompt-exit 180ms ease-in both; }
+.app-share-prompt-close {
+  position: absolute;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 0.75rem;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 1px solid rgb(232 211 166 / 42%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 8%);
+  color: #fffaf0;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.app-share-prompt-emblem {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 0.85rem;
+  place-items: center;
+  border: 1px solid rgb(232 211 166 / 55%);
+  border-radius: 1.2rem 0.55rem;
+  background: rgb(232 211 166 / 12%);
+  color: #efd9aa;
+  font: 800 1.35rem/1 Amiri, "Noto Naskh Arabic", Georgia, serif;
+}
+.app-share-prompt-kicker {
+  margin: 0 0 0.35rem;
+  color: #e4c98e;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+.app-share-prompt-dialog h2 {
+  margin: 0 0 0.85rem;
+  color: #fff6e3;
+  font: 700 clamp(1.3rem, 5vw, 1.65rem)/1.5 Amiri, "Noto Naskh Arabic", Georgia, serif;
+}
+.app-share-prompt-copy {
+  margin: 0 auto 1.3rem;
+  color: rgb(255 250 240 / 88%);
+  font-size: 0.98rem;
+  line-height: 2;
+}
+.app-share-prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+}
+.app-share-prompt-actions button {
+  min-height: 2.9rem;
+  padding: 0.65rem 1.1rem;
+  border: 1px solid rgb(232 211 166 / 55%);
+  border-radius: 0.85rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.app-share-prompt-primary {
+  background: linear-gradient(135deg, #e9ce96, #d8b771);
+  color: #17382c;
+}
+.app-share-prompt-later {
+  background: rgb(255 255 255 / 7%);
+  color: #fffaf0;
+}
+.app-share-prompt-status {
+  min-height: 1.5rem;
+  margin: 0.7rem 0 0;
+  color: #ead7aa;
+  font-size: 0.8rem;
+}
+body.app-share-prompt-open { overflow: hidden; }
+@keyframes app-share-prompt-enter {
+  from { opacity: 0; transform: translateY(0.5rem) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes app-share-prompt-exit {
+  to { opacity: 0; transform: translateY(0.35rem) scale(0.985); }
+}
+@keyframes app-share-prompt-backdrop-exit {
+  to { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-share-prompt-dialog { animation: none; }
 }

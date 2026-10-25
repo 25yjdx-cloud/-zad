@@ -1,5 +1,6 @@
 import { collection, doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
+import { mirrorLegacyStorageKey } from './unsDatabase.js';
 
 const LOCAL_KEY_PREFIX = 'zad.';
 const PENDING_KEYS_STORAGE_PREFIX = 'uns.firebase.pendingKeys.';
@@ -71,6 +72,7 @@ function setLocalValue(key, value) {
   if (!isSyncableKey(key) || typeof value !== 'string' || value.length > MAX_SYNC_VALUE_LENGTH) return false;
   try {
     window.localStorage.setItem(key, value);
+    void mirrorLegacyStorageKey(key, value).catch(() => { /* Cloud restoration remains usable without IndexedDB. */ });
     return true;
   } catch {
     return false;

@@ -1,3 +1,5 @@
+import { cacheTafseer, getCachedTafseer } from './unsDatabase.js';
+
 const DATASET_FILES = {
   muyassar: 'tafsir-muyassar.json',
   sharawi: 'tafsir-sharawi.json',
@@ -69,13 +71,18 @@ export async function getTafsir(sourceId, surah, ayah, signal) {
   if (!Number.isInteger(surah) || surah < 1 || surah > 114
     || !Number.isInteger(ayah) || ayah < 1) throw new Error('رقم السورة أو الآية غير صحيح.');
 
-  const text = await requestWorker({
-    type: 'tafsir',
-    sourceId,
-    url: dataUrl(DATASET_FILES[sourceId]),
-    surah,
-    ayah,
-  }, signal);
+  let text;
+  try { text = (await getCachedTafseer(sourceId, surah, ayah))?.text; } catch { /* Continue with the local JSON source. */ }
+  if (typeof text !== 'string') {
+    text = await requestWorker({
+      type: 'tafsir',
+      sourceId,
+      url: dataUrl(DATASET_FILES[sourceId]),
+      surah,
+      ayah,
+    }, signal);
+    if (text) void cacheTafseer({ source: sourceId, surah, ayah, text }).catch(() => {});
+  }
   return {
     text: text || 'لا يتوفر تفسير لهذه الآية في هذا المصدر.',
     source: source.label,
