@@ -8408,4 +8408,4 @@ body.app-share-prompt-open { overflow: hidden; }
   position: relative;
   z-index: 100005 !important;
 }
-.app-sidebar.is-open { z-index: 100010 !important; }
+.app-sidebar.is-open { z-index: 10001000 !important; }
