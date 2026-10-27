@@ -8409,3 +8409,12 @@ body.app-share-prompt-open { overflow: hidden; }
   z-index: 100005 !important;
 }
 .app-sidebar.is-open { z-index: 10001000 !important; }
+
+/* تثبيت طبقة القائمة الجانبية وشريط الأدوات فوق المصحف دائماً */
+.app-sidebar {
+  z-index: 99999 !important;
+}
+
+.reader-toolbar {
+  z-index: 99980 !important;
+}
