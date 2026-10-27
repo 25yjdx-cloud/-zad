@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-c7b952f4'], (function (workbox) { 'use strict';
+define(['./workbox-611da8fa', './E:/قران مشروعي/node_modules/workbox-precaching/precacheAndRoute.mjs', './E:/قران مشروعي/node_modules/workbox-precaching/cleanupOutdatedCaches.mjs', './E:/قران مشروعي/node_modules/workbox-precaching/createHandlerBoundToURL.mjs'], (function (workbox, precacheAndRoute_mjs, cleanupOutdatedCaches_mjs, createHandlerBoundToURL_mjs) { 'use strict';
 
   importScripts("pwa-events.js");
   self.addEventListener('message', event => {
@@ -81,18 +81,29 @@ define(['./workbox-c7b952f4'], (function (workbox) { 'use strict';
    * requests for URLs in the manifest.
    * See https://goo.gl/S9QRab
    */
-  workbox.precacheAndRoute([{
+  precacheAndRoute_mjs.precacheAndRoute([{
     "url": "index.html",
-    "revision": "0.thr9f1e9nh4"
+    "revision": "0.qd0irt43p88"
   }], {});
-  workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
+  cleanupOutdatedCaches_mjs.cleanupOutdatedCaches();
+  workbox.registerRoute(new workbox.NavigationRoute(createHandlerBoundToURL_mjs.createHandlerBoundToURL("index.html"), {
     allowlist: [/^\/$/],
     denylist: [/\.php$/i, /\/api\//i]
   }));
   workbox.registerRoute(({
     url
   }) => url.pathname.endsWith(".php") || url.pathname.includes("/api/"), new workbox.NetworkOnly(), 'GET');
+  workbox.registerRoute(({
+    url
+  }) => url.origin === self.location.origin && /(?:^|\/)audio\/azkar\/[^/]+\.mp3$/i.test(url.pathname), new workbox.CacheFirst({
+    "cacheName": "zad-azkar-audio-v1",
+    plugins: [new workbox.CacheableResponsePlugin({
+      statuses: [200]
+    }), new workbox.ExpirationPlugin({
+      maxEntries: 24,
+      maxAgeSeconds: 31536000
+    })]
+  }), 'GET');
   workbox.registerRoute(/^https:\/\/quran\.ksu\.edu\.sa\/png_big\/.+\.png(?:\?.*)?$/i, new workbox.CacheFirst({
     "cacheName": "zad-quran-pages-v1",
     plugins: [new workbox.CacheableResponsePlugin({
