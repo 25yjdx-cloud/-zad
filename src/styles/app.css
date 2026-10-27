@@ -8402,3 +8402,10 @@ body.app-share-prompt-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .app-share-prompt-dialog { animation: none; }
 }
+
+/* Lift the Quran toolbar stack above the page canvas and its image layer. */
+.quran-reader > .reader-toolbar {
+  position: relative;
+  z-index: 100005 !important;
+}
+.app-sidebar.is-open { z-index: 100010 !important; }
