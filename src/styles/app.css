@@ -3529,6 +3529,7 @@ body[data-reader-theme="warm"] .surah-info-content h3 { color: #80552f; }
 
 @media (max-width: 768px) {
   .quran-active .reader-quick-menu-panel {
+    width: min(21rem, calc(100vw - 2rem));
     max-height: min(60vh, 280px);
     overflow-y: auto !important;
     padding-bottom: 80px !important;
@@ -3712,11 +3713,6 @@ body[data-reader-theme="warm"] .surah-info-content h3 { color: #80552f; }
   font-weight: 700;
 }
 
-.account-profile-form {
-  display: grid;
-  gap: 1rem;
-}
-
 .account-user-profile {
   display: flex;
   align-items: center;
@@ -3793,10 +3789,6 @@ body[data-reader-theme="warm"] .surah-info-content h3 { color: #80552f; }
   font-size: 1.1rem;
 }
 
-.google-signin-mark.is-local {
-  background: var(--green);
-}
-
 .google-signin-button:disabled .google-signin-mark {
   animation: account-signin-pulse 1.2s ease-in-out infinite alternate;
 }
@@ -3815,11 +3807,6 @@ body[data-reader-theme="warm"] .surah-info-content h3 { color: #80552f; }
 .account-profile-status {
   min-height: 1.4rem;
   margin: 0;
-}
-
-.account-profile-status.is-success {
-  color: var(--green);
-  font-weight: 700;
 }
 
 @media (max-width: 420px) {
@@ -3850,153 +3837,6 @@ body[data-reader-theme="warm"] .surah-info-content h3 { color: #80552f; }
   }
 }
 
-@media (min-width: 768px) {
-  body.quran-active:not(.reader-focus-mode) {
-    display: block;
-    height: auto;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  body.quran-active:not(.reader-focus-mode) .app-shell {
-    display: block;
-    width: auto;
-    max-width: 1140px;
-    height: auto;
-    min-height: 0;
-    margin-inline: auto;
-    padding: 1.25rem 0.75rem 80px;
-  }
-
-  body.quran-active:not(.reader-focus-mode) .main-navigation {
-    margin-bottom: 1rem;
-  }
-
-  body.quran-active:not(.reader-focus-mode) .load-status {
-    height: auto;
-    min-height: 0;
-    margin: 0.4rem 0 0.8rem;
-    overflow: visible;
-  }
-
-  body.quran-active:not(.reader-focus-mode) .tab-content {
-    display: block;
-    height: auto;
-    min-height: 0;
-  }
-
-  body.quran-active:not(.reader-focus-mode) #quran-panel.active {
-    display: block;
-    height: auto;
-    min-height: 0;
-  }
-
-  body.quran-active:not(.reader-focus-mode) .quran-layout {
-    height: auto;
-    min-height: 0;
-    flex: initial;
-    align-items: start;
-  }
-
-  body.quran-active:not(.reader-focus-mode) .index-panel {
-    height: auto;
-    max-height: min(720px, calc(100vh - 2rem));
-  }
-
-  body.quran-active:not(.reader-focus-mode) .index-body {
-    height: auto;
-    max-height: min(670px, calc(100vh - 5rem));
-  }
-
-  body.quran-active:not(.reader-focus-mode) .reader-column {
-    display: block;
-    height: auto;
-    min-height: 0;
-  }
-
-  body.quran-active:not(.reader-focus-mode) .quran-reader {
-    display: block;
-    height: auto;
-    min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  body.quran-active:not(.reader-focus-mode) .mushaf-viewport {
-    min-height: 0;
-  }
-
-  body.quran-active:not(.reader-focus-mode) .quran-reader:not(:fullscreen) .mushaf-stage {
-    display: grid;
-    min-height: min(70vh, 740px);
-    height: auto;
-    flex: initial;
-    overflow: visible;
-    padding: clamp(0.6rem, 2vw, 1.5rem);
-  }
-
-  body.quran-active:not(.reader-focus-mode) .quran-page-image {
-    max-height: min(82vh, 1000px);
-  }
-
-  body.quran-active:not(.reader-focus-mode) .reader-hint {
-    display: block;
-  }
-}
-
-body.quran-active:not(.reader-focus-mode) {
-  display: flex;
-  height: auto;
-  min-height: 100vh;
-  min-height: 100dvh;
-  overflow-x: auto;
-  overflow-y: auto;
-  overscroll-behavior: auto;
-}
-
-body.quran-active:not(.reader-focus-mode) .app-shell {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  flex: 1 0 auto;
-  padding-bottom: calc(2rem + env(safe-area-inset-bottom));
-}
-
-body.quran-active:not(.reader-focus-mode) .tab-content {
-  display: block;
-  height: auto;
-  min-height: 0;
-}
-
-body.quran-active:not(.reader-focus-mode) #quran-panel.active {
-  display: block;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-}
-
-body.quran-active:not(.reader-focus-mode) .quran-layout {
-  height: auto;
-  min-height: 0;
-}
-
-body.quran-active:not(.reader-focus-mode) .reader-column,
-body.quran-active:not(.reader-focus-mode) .quran-reader:not(:fullscreen) {
-  height: auto;
-  min-height: 0;
-}
-
-body.quran-active:not(.reader-focus-mode) .quran-reader:not(:fullscreen) {
-  display: block;
-}
-
-body.quran-active:not(.reader-focus-mode) .quran-reader:not(:fullscreen) .mushaf-stage {
-  flex: initial;
-  overflow: visible;
-}
 .sidebar-open-button,
 .sidebar-close-button,
 .header-settings-button {
@@ -4479,30 +4319,6 @@ body.quran-active:not(.reader-focus-mode) .quran-reader:not(:fullscreen) .mushaf
 
 .account-login-features {
   margin-top: 0.8rem;
-}
-
-.account-guest-form {
-  display: grid;
-  gap: 0.85rem;
-}
-
-.account-guest-form small,
-.account-profile-form small {
-  display: block;
-  margin-top: 0.35rem;
-  color: var(--muted);
-  font-size: 0.72rem;
-}
-
-.account-avatar-preview {
-  width: 5rem;
-  height: 5rem;
-  justify-self: center;
-  border: 3px solid var(--surface);
-  border-radius: 50%;
-  background: var(--green-soft);
-  box-shadow: 0 0 0 1px var(--border), var(--shadow);
-  object-fit: cover;
 }
 
 .account-user-profile:has(.account-user-avatar) {
@@ -7038,10 +6854,6 @@ body.quran-active > #root {
   .tadabbur-actions button { width: 100%; }
 }
 
-body.quran-active:not(.reader-focus-mode) .site-footer {
-  display: flex !important;
-  min-height: 4.75rem;
-}
 body.quran-active .accountability-floating-badge { display: grid !important; transform: none; }
 
 /* Restore the original single-row brand/action header structure. */
@@ -7174,98 +6986,6 @@ body.app-scroll-up .mobile-bottom-nav { transition-duration: 0s; }
   .site-header .auth-entry-label { display: none; }
 }
 
-/* The reader uses document scrolling so browser zoom and page gestures stay native. */
-body.quran-active:not(.reader-focus-mode) {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 100vh;
-  min-height: 100dvh;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-body.quran-active:not(.reader-focus-mode) > #root {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 100dvh;
-  flex: none;
-  overflow: visible;
-}
-body.quran-active:not(.reader-focus-mode) .site-header { position: relative; flex: none; }
-body.quran-active:not(.reader-focus-mode) .app-shell {
-  display: block;
-  width: 100%;
-  max-width: none;
-  height: auto;
-  min-height: 0;
-  margin: 0;
-  overflow: visible;
-  padding: 0.5rem clamp(0.5rem, 2vw, 1.25rem) calc(5rem + env(safe-area-inset-bottom));
-}
-body.quran-active:not(.reader-focus-mode) .main-navigation { flex: none; }
-body.quran-active:not(.reader-focus-mode) .tab-content,
-body.quran-active:not(.reader-focus-mode) #quran-panel.active {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-}
-body.quran-active:not(.reader-focus-mode) .quran-layout {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-}
-body.quran-active:not(.reader-focus-mode) .reader-column {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-}
-body.quran-active:not(.reader-focus-mode) .quran-reader:not(:fullscreen) {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-}
-body.quran-active:not(.reader-focus-mode) .mushaf-viewport {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-}
-body.quran-active:not(.reader-focus-mode) .mushaf-stage {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-  padding: clamp(0.35rem, 1.5vw, 1rem);
-  touch-action: auto;
-  -webkit-overflow-scrolling: touch;
-}
-body.quran-active:not(.reader-focus-mode) .quran-page-image {
-  width: min(100%, 900px);
-  max-width: 100%;
-  max-height: none;
-  height: auto;
-  margin-inline: auto;
-  object-fit: contain;
-  touch-action: auto;
-}
-body.quran-active:not(.reader-focus-mode) .quran-text-mode .mushaf-stage { display: block; }
-body.quran-active:not(.reader-focus-mode) .quran-text-mode .quran-text-page {
-  width: 100%;
-  height: auto;
-  max-height: none;
-  overflow: visible;
-}
 body.quran-active:not(.reader-focus-mode) .floating-page-nav { display: none; }
 body.quran-active .accountability-floating-badge { display: grid; }
 .quran-sidebar-menu-button {
@@ -7289,11 +7009,6 @@ body.quran-active .accountability-floating-badge { display: grid; }
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-body.quran-active:not(.reader-focus-mode) .site-footer {
-  display: flex !important;
-  min-height: 4.75rem;
-  margin-top: 0;
 }
 body.quran-active .accountability-floating-badge { display: grid !important; }
 @media (max-width: 768px) {
@@ -7359,90 +7074,6 @@ body.quran-active .accountability-floating-badge { display: grid !important; }
   .site-header .brand > span:last-child strong { font-size: 0.9rem; }
   .site-header #auth-header-slot .auth-header-button { max-width: 6rem; }
   .site-header #auth-header-slot .auth-entry-label { max-width: 3.5rem; }
-}
-
-/* Let the document, rather than a fixed reader pane, own Quran scrolling. */
-body.quran-active:not(.reader-focus-mode) {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 100vh;
-  min-height: 100dvh;
-  overflow-x: auto;
-  overflow-y: auto;
-  overscroll-behavior: auto;
-}
-body.quran-active:not(.reader-focus-mode) > #root {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 100dvh;
-  flex: none;
-  overflow: visible;
-}
-body.quran-active:not(.reader-focus-mode) .site-header { position: relative; flex: none; }
-body.quran-active:not(.reader-focus-mode) .app-shell {
-  display: block;
-  width: 100%;
-  max-width: none;
-  height: auto;
-  min-height: 0;
-  margin: 0;
-  overflow: visible;
-  padding: 0.5rem clamp(0.5rem, 2vw, 1.25rem) calc(5rem + env(safe-area-inset-bottom));
-}
-body.quran-active:not(.reader-focus-mode) .main-navigation { flex: none; }
-body.quran-active:not(.reader-focus-mode) .tab-content,
-body.quran-active:not(.reader-focus-mode) #quran-panel.active {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-}
-body.quran-active:not(.reader-focus-mode) .quran-layout {
-  display: grid;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  grid-template-columns: minmax(0, 1fr);
-  overflow: visible;
-}
-body.quran-active:not(.reader-focus-mode) .reader-column,
-body.quran-active:not(.reader-focus-mode) .quran-reader:not(:fullscreen),
-body.quran-active:not(.reader-focus-mode) .mushaf-viewport {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-}
-body.quran-active:not(.reader-focus-mode) .mushaf-stage {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-  padding: clamp(0.35rem, 1.5vw, 1rem);
-  touch-action: auto;
-  -webkit-overflow-scrolling: touch;
-}
-body.quran-active:not(.reader-focus-mode) .quran-page-image {
-  display: block;
-  width: min(100%, 56rem);
-  height: auto;
-  max-width: 100%;
-  max-height: none;
-  margin-inline: auto;
-  object-fit: contain;
-  touch-action: auto;
-}
-body.quran-active:not(.reader-focus-mode) .quran-text-mode .mushaf-stage { display: block; }
-body.quran-active:not(.reader-focus-mode) .quran-text-mode .quran-text-page {
-  width: 100%;
-  height: auto;
-  max-height: none;
-  overflow: visible;
 }
 
 /* The tafsir dialog fills the viewport and scrolls as one readable document. */
@@ -8257,7 +7888,8 @@ body.app-scroll-up .mobile-bottom-nav {
   min-width: 0;
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
+  overflow-x: clip;
+  overflow-y: visible;
   box-sizing: border-box;
 }
 .reader-toolbar > .reader-actions,
@@ -8283,6 +7915,9 @@ body.app-scroll-up .mobile-bottom-nav {
   .reader-toolbar > .reader-actions,
   .reader-toolbar > .reader-settings { flex: 0 1 auto; }
   .reader-toolbar > .page-navigation { flex: 0 0 auto; }
+}
+@media (max-width: 359.98px) {
+  .reader-toolbar { flex-wrap: wrap; }
 }
 
 .app-share-prompt-backdrop {
@@ -8401,20 +8036,4 @@ body.app-share-prompt-open { overflow: hidden; }
 }
 @media (prefers-reduced-motion: reduce) {
   .app-share-prompt-dialog { animation: none; }
-}
-
-/* Lift the Quran toolbar stack above the page canvas and its image layer. */
-.quran-reader > .reader-toolbar {
-  position: relative;
-  z-index: 100005 !important;
-}
-.app-sidebar.is-open { z-index: 10001000 !important; }
-
-/* تثبيت طبقة القائمة الجانبية وشريط الأدوات فوق المصحف دائماً */
-.app-sidebar {
-  z-index: 99999 !important;
-}
-
-.reader-toolbar {
-  z-index: 99980 !important;
 }

@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 
 function UserAvatar({ user, className = '' }) {
   const [imageFailed, setImageFailed] = useState(false);
-  const initial = Array.from(user?.displayName?.trim() || 'أ')[0];
+  const initial = Array.from(user?.displayName?.trim() || user?.email?.trim() || 'أ')[0];
   if (user?.photoURL && !imageFailed) {
     return <img className={`auth-user-avatar ${className}`} src={user.photoURL} alt="" referrerPolicy="no-referrer" onError={() => setImageFailed(true)} />;
   }
@@ -15,13 +15,17 @@ function UserAvatar({ user, className = '' }) {
 function AuthTrigger({ location }) {
   const { user, authLoading, openAuthModal } = useAuth();
   const isHeader = location === 'header';
+  const accountLabel = user?.displayName || user?.email || 'المستخدم';
   return (
     <button
       type="button"
       className={isHeader ? 'auth-header-button' : 'sidebar-nav-link auth-sidebar-button'}
       onClick={openAuthModal}
       disabled={authLoading}
-      aria-label={user ? `حساب ${user.displayName || 'المستخدم'}` : 'تسجيل الدخول / حساب المستخدم'}
+      aria-label={user
+        ? `حساب ${accountLabel}${user.displayName && user.email ? `، ${user.email}` : ''}`
+        : 'تسجيل الدخول / حساب المستخدم'}
+      title={user?.email || undefined}
     >
       {user ? <UserAvatar user={user} /> : (
         <svg className="auth-entry-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
@@ -30,7 +34,7 @@ function AuthTrigger({ location }) {
         </svg>
       )}
       <span className="auth-entry-label">
-        {authLoading ? 'جارٍ التحقق…' : user ? (user.displayName || 'حسابي') : isHeader ? 'تسجيل الدخول' : 'تسجيل الدخول / حساب المستخدم'}
+        {authLoading ? 'جارٍ التحقق…' : user ? (user.displayName || user.email || 'حسابي') : isHeader ? 'تسجيل الدخول' : 'تسجيل الدخول / حساب المستخدم'}
       </span>
     </button>
   );

@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { appUrl, fetchApp } from '../services/appUrl.js';
-import { parseStoredJson, serializeStoredJson } from '../services/storage.js';
+import { parseStoredJson } from '../services/storage.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
-const MAX_NAME_LENGTH = 80;
-const MAX_AVATAR_FILE_BYTES = 5 * 1024 * 1024;
-const MAX_AVATAR_DATA_URL_LENGTH = 300_000;
-const DEMO_PROFILE_KEY = 'zad.demoProfile';
 const TELEGRAM_BOT_USERNAME = (import.meta.env.VITE_TELEGRAM_BOT_USERNAME || '').replace(/^@/, '');
 const TELEGRAM_BOT_CONFIGURED = /^[A-Za-z0-9_]{5,32}$/.test(TELEGRAM_BOT_USERNAME);
 const TELEGRAM_START_URL = TELEGRAM_BOT_CONFIGURED
@@ -52,184 +49,35 @@ function getAvatarInitial(name) {
   return Array.from(name.trim())[0] || 'ز';
 }
 
-function readDemoProfile() {
-  const profile = parseStoredJson(window.localStorage.getItem(DEMO_PROFILE_KEY), null);
-  if (profile === null) return null;
-  if (!profile || typeof profile !== 'object' || typeof profile.name !== 'string'
-    || typeof profile.picture !== 'string' || profile.name.length > MAX_NAME_LENGTH
-    || profile.picture.length > MAX_AVATAR_DATA_URL_LENGTH || !isSecureAvatarUrl(profile.picture)) {
-    throw new Error('بيانات الملف المحلي غير صالحة. احذف بيانات الملف التجريبي ثم حاول مجدداً.');
-  }
-  return {
-    id: 'local-demo',
-    name: profile.name,
-    email: '',
-    picture: profile.picture,
-    isDemo: true,
-  };
-}
-
-function persistDemoProfile(profile) {
-  const serialized = serializeStoredJson({
-    name: profile.name,
-    picture: profile.picture,
-  });
-  if (serialized === null) throw new Error('تعذر حفظ الملف التجريبي محلياً.');
-  window.localStorage.setItem(DEMO_PROFILE_KEY, serialized);
-}
-
-function isSecureAvatarUrl(value) {
-  if (!value) return true;
-  if (value.length > MAX_AVATAR_DATA_URL_LENGTH) return false;
-  if (/^data:image\/webp;base64,[A-Za-z0-9+/]+={0,2}$/.test(value)) return true;
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && !url.username && !url.password;
-  } catch {
-    return false;
-  }
-}
-
-function loadAvatarImage(file) {
-  return new Promise((resolve, reject) => {
-    const imageUrl = URL.createObjectURL(file);
-    const image = new Image();
-    image.onload = () => {
-      URL.revokeObjectURL(imageUrl);
-      if (image.naturalWidth && image.naturalHeight) resolve(image);
-      else reject(new Error('أبعاد الصورة غير مدعومة.'));
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(imageUrl);
-      reject(new Error('تعذر قراءة الصورة. اختر صورة أخرى بصيغة PNG أو JPEG أو WebP.'));
-    };
-    image.src = imageUrl;
-  });
-}
-
-async function resizeAvatarImage(file) {
-  if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
-    || file.size > MAX_AVATAR_FILE_BYTES) {
-    throw new Error('اختر صورة PNG أو JPEG أو WebP لا يتجاوز حجمها 5 ميغابايت.');
-  }
-  const image = await loadAvatarImage(file);
-  if (!image.naturalWidth || !image.naturalHeight
-    || image.naturalWidth > 8192 || image.naturalHeight > 8192) {
-    throw new Error('أبعاد الصورة غير مدعومة.');
-  }
-  const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
-  const context = canvas.getContext('2d');
-  if (!context) throw new Error('تعذر تجهيز الصورة في هذا المتصفح.');
-  const cropSize = Math.min(image.naturalWidth, image.naturalHeight);
-  const cropX = (image.naturalWidth - cropSize) / 2;
-  const cropY = (image.naturalHeight - cropSize) / 2;
-  context.drawImage(image, cropX, cropY, cropSize, cropSize, 0, 0, 256, 256);
-  const avatarBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', 0.78));
-  if (!avatarBlob || avatarBlob.size > 200 * 1024) {
-    throw new Error('تعذر ضغط الصورة إلى حجم آمن. اختر صورة أصغر.');
-  }
-  const dataUrl = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-    reader.onerror = () => reject(new Error('تعذر تجهيز الصورة الشخصية.'));
-    reader.readAsDataURL(avatarBlob);
-  });
-  if (!isSecureAvatarUrl(dataUrl)) throw new Error('تعذر التحقق من الصورة الشخصية.');
-  return dataUrl;
-}
-
 export default function AccountModal() {
+  const { user: firebaseUser, authLoading, authBusy, authError, loginWithGoogle, logout } = useAuth();
   const [account, setAccount] = useState({
     available: false,
-    loading: true,
     user: null,
     csrfToken: '',
-    mode: 'server',
   });
-  const [name, setName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
   const [status, setStatus] = useState('');
-  const [saved, setSaved] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState('');
   const [plans, setPlans] = useState({});
   const [telegramStartUrl, setTelegramStartUrl] = useState('');
   const [walletPhone, setWalletPhone] = useState('');
   const [receiptStatus, setReceiptStatus] = useState('');
 
-  async function handleAvatarUpload(event) {
-    const [file] = event.target.files || [];
-    if (!file) return;
-    try {
-      const avatarDataUrl = await resizeAvatarImage(file);
-      setAvatarUrl(avatarDataUrl);
-      setSaved(false);
-      setStatus('تم تجهيز الصورة. احفظ الملف لتثبيتها على هذا الجهاز.');
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'تعذر تجهيز الصورة الشخصية.');
-    } finally {
-      event.target.value = '';
-    }
-  }
-
-  function createLocalProfile(event) {
-    event.preventDefault();
-    const normalizedName = name.replace(/[\u0000-\u001F\u007F]/g, '').trim().replace(/\s+/g, ' ').slice(0, MAX_NAME_LENGTH)
-      || 'زائر أُنْس';
-    const picture = avatarUrl.trim();
-    if (!isSecureAvatarUrl(picture)) {
-      setSaved(false);
-      setStatus('اختر صورة محلية آمنة أو اترك الصورة فارغة.');
-      return;
-    }
-    const demoProfile = {
-      id: 'local-demo',
-      name: normalizedName,
-      email: '',
-      picture,
-      isDemo: true,
-    };
-    try {
-      persistDemoProfile(demoProfile);
-      setAccount((current) => ({ ...current, user: demoProfile }));
-      setName(normalizedName);
-      setAvatarUrl(picture);
-      setSaved(true);
-      setStatus('تم إنشاء ملفك المحلي على هذا الجهاز.');
-    } catch {
-      setSaved(false);
-      setStatus('تعذر حفظ الملف محلياً. تحقق من مساحة التخزين في المتصفح.');
-    }
-  }
-
   useEffect(() => {
     const controller = new AbortController();
 
-    function enableLocalMode(message = '') {
-      let demoProfile = null;
-      let localStatus = message;
-      try {
-        demoProfile = readDemoProfile();
-      } catch {
-        localStatus = 'تعذر استعادة الملف المحلي. يمكنك بدء ملف تجريبي جديد وحفظه على هذا الجهاز.';
-      }
+    function disableAccountServices() {
       setAccount({
         available: false,
-        loading: false,
-        user: demoProfile,
+        user: null,
         csrfToken: '',
-        mode: 'local',
       });
-      setName(demoProfile?.name || '');
-      setAvatarUrl(demoProfile?.picture || '');
-      setStatus(localStatus);
       signalProfileHydrated();
     }
 
     async function loadAccount() {
       if (import.meta.env.DEV || __GITHUB_PAGES__) {
-        enableLocalMode();
+        disableAccountServices();
         return;
       }
 
@@ -243,146 +91,24 @@ export default function AccountModal() {
         const payload = await readResponse(response);
         setAccount({
           available: payload.available === true,
-          loading: false,
           user: payload.user || null,
           csrfToken: payload.csrfToken || '',
-          mode: payload.available === true ? 'server' : 'local',
         });
         setPlans(payload.plans || {});
-        setName(payload.user?.name || '');
-        setAvatarUrl(payload.user?.picture || '');
         if (payload.user?.subscription?.status === 'active'
           && payload.user.subscription.plan === 'telegram_lifetime') {
           signalTelegramActivated();
         }
         signalProfileHydrated();
-        if (payload.available !== true) {
-          enableLocalMode();
-          return;
-        }
-
-        const authResult = new URLSearchParams(window.location.search).get('auth');
-        if (authResult === 'success') {
-          setStatus(payload.user
-            ? 'تم تسجيل الدخول والتحقق من حساب Google بنجاح.'
-            : 'لم نتمكن من استعادة جلسة الحساب. يرجى تسجيل الدخول مرة أخرى.');
-        }
-        if (authResult === 'failed') setStatus('تعذر التحقق من تسجيل الدخول. حاول مرة أخرى.');
-        if (authResult) {
-          window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`);
-        }
       } catch (error) {
         if (error.name === 'AbortError') return;
-        enableLocalMode('خدمة الحسابات غير متاحة الآن. يمكنك المتابعة بملف تجريبي محلي.');
+        disableAccountServices();
       }
     }
 
     loadAccount();
     return () => controller.abort();
   }, []);
-
-  async function submitProfile(event) {
-    event.preventDefault();
-    const normalizedName = name.replace(/[\u0000-\u001F\u007F]/g, '').trim().replace(/\s+/g, ' ');
-    if (!normalizedName) {
-      setSaved(false);
-      setStatus('أدخل اسماً صالحاً قبل الحفظ.');
-      return;
-    }
-    if (normalizedName.length > MAX_NAME_LENGTH) {
-      setSaved(false);
-      setStatus(`يجب ألا يتجاوز الاسم ${MAX_NAME_LENGTH} حرفاً.`);
-      return;
-    }
-    setName(normalizedName);
-
-    if (account.mode === 'local') {
-      if (!isSecureAvatarUrl(avatarUrl.trim())) {
-        setSaved(false);
-        setStatus('أدخل رابط صورة آمن يبدأ بـ https:// أو اتركه فارغاً.');
-        return;
-      }
-      const demoProfile = {
-        id: 'local-demo',
-        name: normalizedName,
-        email: '',
-        picture: avatarUrl.trim(),
-        isDemo: true,
-      };
-      try {
-        persistDemoProfile(demoProfile);
-        setAccount((current) => ({ ...current, user: demoProfile }));
-        setName(normalizedName);
-        setAvatarUrl(demoProfile.picture);
-        setSaved(true);
-        setStatus('تم حفظ الملف التجريبي على هذا الجهاز.');
-      } catch {
-        setSaved(false);
-        setStatus('تعذر حفظ الملف محلياً. تحقق من مساحة التخزين في المتصفح.');
-      }
-      return;
-    }
-
-    try {
-      const response = await fetchApp('auth.php?action=profile', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': account.csrfToken,
-        },
-        body: JSON.stringify({ name: normalizedName }),
-      });
-      const payload = await readResponse(response);
-      setAccount((current) => ({
-        ...current,
-        user: { ...current.user, ...payload.user },
-      }));
-      setSaved(true);
-      setStatus('تم تحديث بيانات ملفك في الحساب.');
-    } catch {
-      setSaved(false);
-      setStatus('تعذر حفظ التغييرات الآن. تحقق من اتصال الحساب وحاول مجدداً.');
-    }
-  }
-
-  async function signOut() {
-    if (account.mode === 'local') {
-      try {
-        window.localStorage.removeItem(DEMO_PROFILE_KEY);
-        setAccount((current) => ({ ...current, user: null }));
-        setName('');
-        setAvatarUrl('');
-        setSaved(false);
-        setStatus('تم تسجيل الخروج من الملف التجريبي على هذا الجهاز.');
-      } catch {
-        setStatus('تعذر تسجيل الخروج محلياً. تحقق من إعدادات التخزين في المتصفح.');
-      }
-      return;
-    }
-
-    try {
-      const response = await fetchApp('auth.php?action=logout', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': account.csrfToken,
-        },
-        body: '{}',
-      });
-      await readResponse(response);
-      setAccount((current) => ({ ...current, user: null, csrfToken: '' }));
-      setName('');
-      setAvatarUrl('');
-      setSaved(false);
-      setStatus('تم تسجيل الخروج من هذا الجهاز.');
-    } catch {
-      setStatus('تعذر تسجيل الخروج الآن. تحقق من اتصال الحساب وحاول مجدداً.');
-    }
-  }
 
   async function refreshAccountStatus() {
     try {
@@ -399,7 +125,6 @@ export default function AccountModal() {
         available: payload.available === true,
         user: nextUser,
         csrfToken: payload.csrfToken || current.csrfToken,
-        mode: payload.available === true ? 'server' : 'local',
       }));
       setPlans(payload.plans || {});
       if (priorSubscription?.plan !== 'telegram_lifetime'
@@ -545,7 +270,13 @@ export default function AccountModal() {
     }
   }
 
-  const subscription = account.user?.subscription;
+  const serviceUser = firebaseUser?.email
+    && typeof account.user?.email === 'string'
+    && account.available
+    && account.user.email.toLowerCase() === firebaseUser.email.toLowerCase()
+    ? account.user
+    : null;
+  const subscription = serviceUser?.subscription;
   const hasActiveVip = subscription?.status === 'active';
   const subscriptionExpiry = subscription?.expiresAt
     ? new Date(subscription.expiresAt).toLocaleDateString('ar-EG')
@@ -563,33 +294,24 @@ export default function AccountModal() {
             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
           </div>
           <div className="modal-body">
-            {account.loading ? (
-              <p className="account-profile-status" role="status">جارٍ التحقق من حالة الحساب...</p>
-            ) : account.user ? (
+            {authLoading ? (
+              <p className="account-profile-status" role="status">جارٍ التحقق من حالة تسجيل الدخول...</p>
+            ) : firebaseUser ? (
               <>
-                <div className="account-user-profile" aria-label={account.user.isDemo ? 'ملف محلي تجريبي' : 'حساب Google متصل'}>
-                  {account.user.picture ? (
-                    <img className="account-user-avatar" src={account.user.picture} alt="" referrerPolicy="no-referrer" />
+                <div className="account-user-profile" aria-label="حساب Firebase متصل">
+                  {firebaseUser.photoURL ? (
+                    <img className="account-user-avatar" src={firebaseUser.photoURL} alt="" referrerPolicy="no-referrer" />
                   ) : (
-                    <span className="account-user-avatar" aria-hidden="true">{getAvatarInitial(account.user.name)}</span>
+                    <span className="account-user-avatar" aria-hidden="true">
+                      {getAvatarInitial(firebaseUser.displayName || firebaseUser.email || '')}
+                    </span>
                   )}
                   <span>
-                    <strong>{account.user.name}</strong>
-                    <small>{account.user.isDemo ? 'ملف تجريبي محفوظ على هذا الجهاز' : account.user.email}</small>
+                    <strong>{firebaseUser.displayName || 'مستخدم أُنْس'}</strong>
+                    {firebaseUser.email && <small>{firebaseUser.email}</small>}
                   </span>
                 </div>
-                {account.user.isDemo ? (
-                  <>
-                    <p className="account-local-notice" role="note">
-                      هذا ملف محلي خاص بهذا الجهاز. سجّل الدخول بحساب Google لمزامنة ملفك والوصول إلى مزايا الحساب.
-                    </p>
-                    <ul className="account-feature-list" aria-label="مزايا تسجيل الدخول">
-                      <li>حفظ ملفك ومزامنته عبر أجهزتك.</li>
-                      <li>إدارة إعداداتك واشتراكك من حساب موثّق.</li>
-                      <li>الوصول إلى مزايا Telegram عند تفعيلها.</li>
-                    </ul>
-                  </>
-                ) : (
+                {serviceUser ? (
                   <>
                     <section className="telegram-plan-card" aria-labelledby="telegram-plan-title">
                       <h3 id="telegram-plan-title">اشتراك بوت أُنْس مدى الحياة</h3>
@@ -606,7 +328,7 @@ export default function AccountModal() {
                         <p className="account-local-notice" role="status">اشتراك Telegram مدى الحياة مفعّل لحسابك.</p>
                       ) : (
                         <>
-                          {!account.user.telegramLinked ? (
+                          {!serviceUser.telegramLinked ? (
                             <div className="telegram-link-controls">
                               <p>اربط حساب Telegram أولاً لتفعيل الخدمة على محادثتك بعد تأكيد الدفع.</p>
                               <button className="btn btn-success w-100" type="button" onClick={createTelegramLink}>
@@ -739,117 +461,46 @@ export default function AccountModal() {
                       </div>
                     </section>
                   </>
+                ) : (
+                  <p className="account-modal-note" role="note">
+                    بيانات الملف من حساب Firebase. خدمات الاشتراك غير متاحة لهذا الحساب حالياً.
+                  </p>
                 )}
-                <form className="account-profile-form" onSubmit={submitProfile}>
-                  <label className="settings-control" htmlFor="profile-name">الاسم الظاهر
-                    <input
-                      id="profile-name"
-                      className="form-control"
-                      type="text"
-                      autoComplete="name"
-                      maxLength={MAX_NAME_LENGTH}
-                      value={name}
-                      onChange={(event) => {
-                        setName(event.target.value);
-                        setStatus('');
-                        setSaved(false);
-                      }}
-                    />
-                  </label>
-                  {account.mode === 'local' && (
-                    <>
-                      <label className="settings-control" htmlFor="profile-avatar">رابط الصورة الشخصية (اختياري)
-                      <input
-                        id="profile-avatar"
-                        className="form-control"
-                        type="text"
-                        inputMode="url"
-                        autoComplete="url"
-                        maxLength={MAX_AVATAR_DATA_URL_LENGTH}
-                        placeholder="https://example.com/photo.jpg"
-                        value={avatarUrl}
-                        onChange={(event) => {
-                          setAvatarUrl(event.target.value);
-                          setStatus('');
-                          setSaved(false);
-                        }}
-                      />
-                    </label>
-                      <label className="settings-control" htmlFor="profile-avatar-upload">أو ارفع صورة شخصية
-                        <input
-                          id="profile-avatar-upload"
-                          className="form-control"
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp"
-                          onChange={handleAvatarUpload}
-                        />
-                        <small>PNG أو JPEG أو WebP، حتى 5 ميغابايت؛ تُضغط الصورة وتُحفظ محلياً.</small>
-                      </label>
-                    </>
-                  )}
-                  <button className="btn btn-success w-100" type="submit">حفظ التغييرات</button>
-                  <button className="btn btn-outline-secondary w-100" type="button" onClick={signOut}>
-                    {account.mode === 'local' ? 'إنهاء الملف التجريبي' : 'تسجيل الخروج'}
-                  </button>
-                </form>
+                <button
+                  className="btn btn-outline-secondary w-100"
+                  type="button"
+                  disabled={authBusy}
+                  onClick={() => { void logout().catch(() => {}); }}
+                >
+                  {authBusy ? 'جارٍ تسجيل الخروج...' : 'تسجيل الخروج'}
+                </button>
               </>
             ) : (
               <>
                 <section className="account-login-hero">
-                  <span className="account-login-symbol" aria-hidden="true">ز</span>
+                  <span className="account-login-symbol" aria-hidden="true">أ</span>
                   <p className="section-kicker">مساحة قرآنية خاصة بك</p>
-                  <h3>{account.mode === 'local' ? 'ابدأ بملف زائر' : 'مرحباً بك في أُنْس'}</h3>
-                  <p className="account-modal-note">
-                    {account.mode === 'local'
-                      ? 'احفظ اسماً وصورة على هذا الجهاز، أو استخدم Google عند توفر تسجيل الدخول الآمن.'
-                      : 'سجّل الدخول بحساب Google موثّق لحفظ ملفك ومزامنة مزايا الحساب.'}
-                  </p>
+                  <h3>مرحباً بك في أُنْس</h3>
+                  <p className="account-modal-note">سجّل الدخول بحساب Google لعرض ملفك الحقيقي ومزامنة بياناتك.</p>
                 </section>
                 <ul className="account-feature-list account-login-features">
-                  <li>احتفظ بملف شخصي يرحب بك في كل زيارة.</li>
-                  <li>تابع علاماتك وإعدادات قراءتك بسهولة.</li>
-                  <li>اكتشف مزايا التذكيرات عند تفعيلها.</li>
+                  <li>عرض اسمك وبريدك وصورتك من حساب Google.</li>
+                  <li>مزامنة بيانات القراءة بين أجهزتك.</li>
+                  <li>إدارة إعدادات الحساب من مكان واحد.</li>
                 </ul>
-                {account.mode === 'local' ? (
-                  <form className="account-guest-form" onSubmit={createLocalProfile}>
-                    <label className="settings-control" htmlFor="profile-name">الاسم الظاهر
-                      <input
-                        id="profile-name"
-                        className="form-control"
-                        type="text"
-                        autoComplete="name"
-                        maxLength={MAX_NAME_LENGTH}
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
-                      />
-                    </label>
-                    <label className="settings-control" htmlFor="profile-avatar-upload">الصورة الشخصية (اختياري)
-                      <input
-                        id="profile-avatar-upload"
-                        className="form-control"
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={handleAvatarUpload}
-                      />
-                      <small>PNG أو JPEG أو WebP، حتى 5 ميغابايت.</small>
-                    </label>
-                    {avatarUrl && <img className="account-avatar-preview" src={avatarUrl} alt="معاينة الصورة الشخصية" />}
-                    <button className="btn btn-success w-100" type="submit">إنشاء ملف زائر</button>
-                  </form>
-                ) : (
-                  <button
-                    className="google-signin-button"
-                    type="button"
-                    disabled={account.loading}
-                    onClick={() => window.location.assign(appUrl('auth.php?action=google'))}
-                  >
-                    <span className="google-signin-mark" aria-hidden="true">G</span>
-                    <span>{account.loading ? 'جارٍ التحقق...' : 'تسجيل الدخول باستخدام Google'}</span>
-                  </button>
-                )}
+                <button
+                  className="google-signin-button"
+                  type="button"
+                  disabled={authBusy}
+                  onClick={() => { void loginWithGoogle().catch(() => {}); }}
+                >
+                  <span className="google-signin-mark" aria-hidden="true">G</span>
+                  <span>{authBusy ? 'جارٍ الاتصال بجوجل...' : 'تسجيل الدخول باستخدام Google'}</span>
+                </button>
+                {authError && <p className="auth-error" role="alert">{authError}</p>}
               </>
             )}
-            <p className={`account-profile-status${saved ? ' is-success' : ''}`} role="status" aria-live="polite">
+            <p className="account-profile-status" role="status" aria-live="polite">
               {status}
             </p>
           </div>

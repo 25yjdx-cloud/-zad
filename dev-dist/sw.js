@@ -83,7 +83,7 @@ define(['./workbox-611da8fa', './E:/قران مشروعي/node_modules/workbox-p
    */
   precacheAndRoute_mjs.precacheAndRoute([{
     "url": "index.html",
-    "revision": "0.941tqrcpkhk"
+    "revision": "0.lepom70mal8"
   }], {});
   cleanupOutdatedCaches_mjs.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(createHandlerBoundToURL_mjs.createHandlerBoundToURL("index.html"), {
