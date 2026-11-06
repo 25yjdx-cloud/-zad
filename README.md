@@ -126,16 +126,17 @@ InstaPay ليس لديه Webhook موثّق في هذا المشروع: الزر
 
 ### تعليقات المستخدمين
 
-في نشر Vercel، ترسل نافذتا الملاحظات الطلبات إلى `api/feedback.js` على النطاق نفسه. تتحقق الوظيفة من المصدر والحقول، ثم تمرر الطلب إلى Google Apps Script؛ ويسجل Apps Script الرسالة ووقتها ونوعها في تبويب `Feedback` في Google Sheet، ويرسل إشعاراً نصياً إلى `25yjdx@gmail.com`. لا تُضمّن بيانات اعتماد Google أو سر webhook في ملفات المتصفح.
+في نشر Vercel، ترسل نافذتا الملاحظات الطلبات إلى `api/feedback.js` على النطاق نفسه. تتحقق الوظيفة من المصدر والحقول، ثم ترسل الرسالة إلى Telegram عند ضبط `TELEGRAM_FEEDBACK_BOT_TOKEN` و`TELEGRAM_FEEDBACK_CHAT_ID` في إعدادات الخادم. ويمكن تفعيل Google Apps Script بالتوازي لتسجيل الرسالة ووقتها ونوعها في تبويب `Feedback` وإرسال إشعار البريد الحالي. لا تُضمّن رمز البوت أو بيانات اعتماد Google أو سر webhook في ملفات المتصفح.
 
 لإعداد التكامل:
 
 1. أنشئ Google Sheet في الحساب المستلم، وافتح **Extensions → Apps Script**، وانسخ محتوى `google-apps-script/feedback.gs` إلى المشروع واحفظه.
 2. من **Project Settings → Script Properties** أضف `FEEDBACK_SPREADSHEET_ID` (معرّف جدول البيانات من رابطه) و`FEEDBACK_WEBHOOK_SECRET` (قيمة عشوائية طويلة تُنشأ محلياً).
 3. شغّل `authorizeFeedbackIntegrations` من محرر Apps Script ووافق على صلاحيات البريد وجدول البيانات، ثم انشر Apps Script كـ **Web app** مع **Execute as: Me** و**Who has access: Anyone**. انسخ رابط النشر المنتهي بـ `/exec`.
-4. في إعدادات مشروع Vercel، أضف `ZAD_FEEDBACK_SCRIPT_URL` (رابط `/exec`) و`ZAD_FEEDBACK_WEBHOOK_SECRET` (نفس السر من Script Properties) لكل بيئة مطلوبة. أنشئ السر محلياً مثلاً باستخدام `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`؛ لا تضفه إلى Git أو تضعه في متغير يبدأ بـ `VITE_`.
-5. للتجربة عبر Vite محلياً، انسخ القيمتين نفسيهما إلى `.env.local`؛ يمرر خادم التطوير `/api/feedback` إلى معالج Vercel نفسه. لا ترسل رسالة حتى تضبط رابط Apps Script والسر.
-6. انشر التطبيق على Vercel بعد حفظ المتغيرات، ثم أرسل رسالة تجريبية وتحقق من البريد والصف في `Feedback`. لإرسال تغييرات الشيفرة:
+4. لتفعيل Telegram، أنشئ بوتاً وأضف `TELEGRAM_FEEDBACK_BOT_TOKEN` ورقم المحادثة المستلمة في `TELEGRAM_FEEDBACK_CHAT_ID` إلى إعدادات الخادم. لا تضع رمز البوت في أي متغير `VITE_` أو ملف متعقب في Git. وإذا كان الرمز قد نُشر أو كُشف، فأبطله وأنشئ رمزاً جديداً عبر BotFather قبل استخدامه.
+5. في إعدادات مشروع Vercel، أضف `ZAD_FEEDBACK_SCRIPT_URL` (رابط `/exec`) و`ZAD_FEEDBACK_WEBHOOK_SECRET` (نفس السر من Script Properties) لكل بيئة مطلوبة. أنشئ السر محلياً مثلاً باستخدام `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`؛ لا تضفه إلى Git أو تضعه في متغير يبدأ بـ `VITE_`. تكامل Apps Script اختياري إذا كان Telegram مفعلاً.
+6. للتجربة عبر Vite محلياً، ضع إعدادات الوجهة المطلوبة في `.env.local`؛ يمرر خادم التطوير `/api/feedback` إلى معالج Vercel نفسه.
+7. انشر التطبيق على Vercel بعد حفظ المتغيرات، ثم أرسل رسالة تجريبية وتحقق من وصولها إلى الوجهة المضبوطة. لإرسال تغييرات الشيفرة:
 
    ```sh
    git add api/feedback.js google-apps-script/feedback.gs src/legacy/app.js .env.example README.md

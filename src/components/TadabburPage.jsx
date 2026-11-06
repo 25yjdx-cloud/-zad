@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getQuranAyah, getSurahMetadata } from '../services/tafsir.js';
 
-function openSurahInfo(surahNumber) {
-  window.dispatchEvent(new CustomEvent('uns:open-surah-info', { detail: { surahNumber } }));
+function openSurahInfo(surahNumber, ayahNumber) {
+  window.dispatchEvent(new CustomEvent('uns:open-surah-info', { detail: { surahNumber, ayahNumber } }));
 }
 
 function openTafsir(ayah) {
@@ -154,7 +154,7 @@ export default function TadabburPage() {
           <h1>أُنْس وتدبّر</h1>
           <p className="tadabbur-page-subtitle">عَش مع آيات الله</p>
         </div>
-        <button type="button" className="tadabbur-info-button" onClick={() => openSurahInfo(surahNumber)} disabled={!selectedSurah}>
+        <button type="button" className="tadabbur-info-button" onClick={() => openSurahInfo(surahNumber, ayah?.ayahNumber)} disabled={!selectedSurah}>
           معلومات ومقاصد السورة
         </button>
       </header>

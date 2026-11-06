@@ -47,59 +47,61 @@ function serveRootRuntimeFiles() {
 }
 
 function serveLocalFeedbackApi() {
-  return {
-    name: 'serve-local-feedback-api',
-    configureServer(server) {
-      const feedbackEnvironment = loadEnv(server.config.mode, projectRoot, '');
-      const handler = createFeedbackHandler(feedbackEnvironment);
-      server.middlewares.use('/api/feedback', async (req, res, next) => {
-        const route = (req.url ?? '').split('?')[0];
-        if (route && route !== '/' && route !== '/feedback') {
-          next();
+  function registerFeedbackMiddleware(server) {
+    const handler = createFeedbackHandler(loadEnv(server.config.mode, projectRoot, ''));
+    server.middlewares.use('/api/feedback', async (req, res, next) => {
+      const route = (req.url ?? '').split('?')[0];
+      if (route && route !== '/' && route !== '/feedback') {
+        next();
+        return;
+      }
+
+      if (req.method === 'POST') {
+        const chunks = [];
+        let totalBytes = 0;
+        let tooLarge = false;
+        try {
+          for await (const chunk of req) {
+            totalBytes += chunk.length;
+            if (totalBytes > 16_384) tooLarge = true;
+            else if (!tooLarge) chunks.push(chunk);
+          }
+        } catch {
+          res.statusCode = 400;
+          res.setHeader('Cache-Control', 'no-store');
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, error: 'Invalid request body' }));
           return;
         }
-
-        if (req.method === 'POST') {
-          const chunks = [];
-          let totalBytes = 0;
-          let tooLarge = false;
-          try {
-            for await (const chunk of req) {
-              totalBytes += chunk.length;
-              if (totalBytes > 16_384) tooLarge = true;
-              else chunks.push(chunk);
-            }
-          } catch {
-            res.statusCode = 400;
-            res.setHeader('Cache-Control', 'no-store');
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            res.end(JSON.stringify({ success: false, error: 'Invalid request body' }));
-            return;
-          }
-          if (tooLarge) {
-            res.statusCode = 413;
-            res.setHeader('Cache-Control', 'no-store');
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            res.end(JSON.stringify({ success: false, error: 'Feedback request is too large' }));
-            return;
-          }
-          req.body = Buffer.concat(chunks).toString('utf8');
+        if (tooLarge) {
+          res.statusCode = 413;
+          res.setHeader('Cache-Control', 'no-store');
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, error: 'Feedback request is too large' }));
+          return;
         }
+        req.body = Buffer.concat(chunks).toString('utf8');
+      }
 
-        const apiResponse = {
-          setHeader: (...args) => res.setHeader(...args),
-          status(code) {
-            res.statusCode = code;
-            return this;
-          },
-          json(payload) {
-            res.end(JSON.stringify(payload));
-            return this;
-          },
-        };
-        await handler(req, apiResponse);
-      });
-    },
+      const apiResponse = {
+        setHeader: (...args) => res.setHeader(...args),
+        status(code) {
+          res.statusCode = code;
+          return this;
+        },
+        json(payload) {
+          res.end(JSON.stringify(payload));
+          return this;
+        },
+      };
+      await handler(req, apiResponse);
+    });
+  }
+
+  return {
+    name: 'serve-local-feedback-api',
+    configureServer: registerFeedbackMiddleware,
+    configurePreviewServer: registerFeedbackMiddleware,
   };
 }
 

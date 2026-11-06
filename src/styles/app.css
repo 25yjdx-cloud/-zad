@@ -706,6 +706,7 @@ button {
   overflow: auto;
   overscroll-behavior: contain;
   touch-action: auto;
+  cursor: zoom-in;
   place-items: center;
   padding: clamp(0.6rem, 2vw, 1.5rem);
   background-color: #f7f4e9;
@@ -776,7 +777,7 @@ button {
   max-width: 100%;
   max-height: 68vh;
   object-fit: contain;
-  cursor: auto;
+  cursor: zoom-in;
   filter: brightness(var(--reader-brightness));
   transition: filter 100ms linear, transform 200ms ease;
   transform-origin: center center;
@@ -935,6 +936,19 @@ button {
   color: var(--ink);
   font-size: 0.94rem;
   line-height: 2;
+}
+
+.zikr-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.zikr-instruction {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.7;
 }
 
 .zikr-counter {
@@ -3171,7 +3185,7 @@ body[data-reader-theme="warm"] .mushaf-stage {
   color: var(--ink);
 }
 
-.quran-text-mode .mushaf-stage { background: #fbf8ef; }
+.quran-text-mode .mushaf-stage { background: #fbf8ef; cursor: auto; }
 .quran-text-page { max-height: min(72vh, 58rem); overflow-y: auto; padding: clamp(1.1rem, 4vw, 2.4rem); color: #352f25; background: linear-gradient(145deg, #fffdf7, #f8f1e3); font-family: Amiri, "Noto Naskh Arabic", "Traditional Arabic", serif; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .quran-text-page[hidden] { display: none; }
 .quran-text-ayah { display: inline; border: 0; border-radius: .55rem; padding: .12rem .22rem; color: inherit; background: transparent; font: inherit; font-size: clamp(1.3rem, 4vw, 2rem); line-height: 2.2; text-align: justify; cursor: pointer; transition: background-color 160ms ease, color 160ms ease; }
@@ -3292,16 +3306,32 @@ body.tafsir-open { overflow: hidden; }
 .surah-info-content { color: #39483f; font: 1rem/1.9 Cairo, Tahoma, sans-serif; }
 .surah-info-content h3 { margin: 1.1rem 0 .35rem; color: #17483b; font-size: 1rem; }
 .surah-info-content p { white-space: pre-wrap; }
+.surah-asbab-controls { display: flex; align-items: center; gap: .5rem; margin: .45rem 0 .75rem; }
+.surah-asbab-controls label { color: #596a5e; font-size: .85rem; font-weight: 700; }
+.surah-asbab-controls input { width: 5rem; min-height: 2.45rem; border: 1px solid #dce5dc; border-radius: .6rem; padding: .3rem .5rem; color: #293a31; background: #fff; font: inherit; }
+.surah-asbab-controls button { min-height: 2.45rem; border: 1px solid #b8d5c1; border-radius: .6rem; padding: .3rem .75rem; color: #17483b; background: #eef7f0; font: inherit; font-size: .82rem; font-weight: 700; }
+.surah-asbab-controls button:disabled { opacity: .55; cursor: not-allowed; }
+.surah-asbab-source { margin: .65rem 0; padding: .7rem .8rem; border: 1px solid #e8e5db; border-radius: .7rem; background: #faf8f1; }
+.surah-asbab-source h4 { margin: 0 0 .35rem; color: #59694f; font-size: .82rem; }
+.surah-asbab-source p { margin: 0; }
 .night-mode .reader-mode-switch { border-color: #3e4b45; background: #1b2722; }
 .night-mode .reader-mode-switch button:not([aria-pressed="true"]) { color: #e6eee8; }
 .night-mode .surah-info-dialog { border-color: #3e4b45; color: #e5eee7; background: #18231e; }
 .night-mode .surah-info-select select { border-color: #46564c; color: #e5eee7; background: #202e27; }
 .night-mode .surah-info-content { color: #e5eee7; }
 .night-mode .surah-info-content h3 { color: #9bd2b3; }
+.night-mode .surah-asbab-controls label,
+.night-mode .surah-asbab-source h4 { color: #bac9bd; }
+.night-mode .surah-asbab-controls input { border-color: #46564c; color: #e5eee7; background: #202e27; }
+.night-mode .surah-asbab-controls button { border-color: #46564c; color: #e5eee7; background: #202e27; }
+.night-mode .surah-asbab-source { border-color: #3e4b45; background: #202e27; }
 body[data-reader-theme="warm"] .surah-info-dialog { border-color: #decba8; color: #493b2b; background: #fff7e8; }
 body[data-reader-theme="warm"] .surah-info-select select { border-color: #decba8; color: #493b2b; background: #fffaf0; }
 body[data-reader-theme="warm"] .surah-info-content { color: #493b2b; }
 body[data-reader-theme="warm"] .surah-info-content h3 { color: #80552f; }
+body[data-reader-theme="warm"] .surah-asbab-controls input { border-color: #decba8; color: #493b2b; background: #fffaf0; }
+body[data-reader-theme="warm"] .surah-asbab-controls button,
+body[data-reader-theme="warm"] .surah-asbab-source { border-color: #decba8; color: #493b2b; background: #fff1d8; }
 @media (max-width: 520px) {
   .reader-mode-switch { margin-bottom: .55rem; }
   .tasbeeh-title-row { padding-inline-end: 5.6rem; }

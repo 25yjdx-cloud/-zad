@@ -1,6 +1,13 @@
 const ALLOWED_CATEGORIES = new Set(['suggestion', 'note', 'complaint', 'issue', 'other']);
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_BODY_BYTES = 16_384;
+const CATEGORY_LABELS = {
+  suggestion: 'اقتراح',
+  note: 'ملاحظة',
+  complaint: 'شكوى',
+  issue: 'بلاغ عن مشكلة',
+  other: 'أخرى',
+};
 
 function sendJson(res, statusCode, body) {
   res.setHeader('Cache-Control', 'no-store');
@@ -71,30 +78,47 @@ export function createFeedbackHandler(environment = process.env) {
     return;
   }
 
+  const botToken = environment?.TELEGRAM_FEEDBACK_BOT_TOKEN;
+  const chatId = environment?.TELEGRAM_FEEDBACK_CHAT_ID;
+  const telegramConfigured = Boolean(botToken || chatId);
+  if (telegramConfigured && (!botToken || !chatId
+    || !/^\d+:[A-Za-z0-9_-]{30,}$/.test(botToken)
+    || !/^-?\d{5,20}$/.test(chatId))) {
+    sendJson(res, 503, { success: false, error: 'Feedback service is not configured' });
+    return;
+  }
+
   const scriptUrl = environment?.ZAD_FEEDBACK_SCRIPT_URL;
   const sharedSecret = environment?.ZAD_FEEDBACK_WEBHOOK_SECRET;
-  if (!scriptUrl || !sharedSecret) {
+  const scriptConfigured = Boolean(scriptUrl || sharedSecret);
+  if (scriptConfigured && (!scriptUrl || !sharedSecret)) {
+    sendJson(res, 503, { success: false, error: 'Feedback service is not configured' });
+    return;
+  }
+  if (!telegramConfigured && !scriptConfigured) {
     sendJson(res, 503, { success: false, error: 'Feedback service is not configured' });
     return;
   }
 
   let parsedScriptUrl;
-  try {
-    parsedScriptUrl = new URL(scriptUrl);
-  } catch {
-    sendJson(res, 503, { success: false, error: 'Feedback service is not configured' });
-    return;
-  }
-  if (parsedScriptUrl.protocol !== 'https:'
-    || parsedScriptUrl.hostname !== 'script.google.com'
-    || !/^\/macros\/s\/[^/]+\/exec$/.test(parsedScriptUrl.pathname)
-    || parsedScriptUrl.search
-    || parsedScriptUrl.hash
-    || parsedScriptUrl.username
-    || parsedScriptUrl.password
-    || !/^[0-9a-f]{64,}$/i.test(sharedSecret)) {
-    sendJson(res, 503, { success: false, error: 'Feedback service is not configured' });
-    return;
+  if (scriptConfigured) {
+    try {
+      parsedScriptUrl = new URL(scriptUrl);
+    } catch {
+      sendJson(res, 503, { success: false, error: 'Feedback service is not configured' });
+      return;
+    }
+    if (parsedScriptUrl.protocol !== 'https:'
+      || parsedScriptUrl.hostname !== 'script.google.com'
+      || !/^\/macros\/s\/[^/]+\/exec$/.test(parsedScriptUrl.pathname)
+      || parsedScriptUrl.search
+      || parsedScriptUrl.hash
+      || parsedScriptUrl.username
+      || parsedScriptUrl.password
+      || !/^[0-9a-f]{64,}$/i.test(sharedSecret)) {
+      sendJson(res, 503, { success: false, error: 'Feedback service is not configured' });
+      return;
+    }
   }
 
   const forwardedFor = req.headers['x-forwarded-for'];
@@ -103,25 +127,47 @@ export function createFeedbackHandler(environment = process.env) {
     : '';
 
   try {
-    const upstreamResponse = await fetch(parsedScriptUrl, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-      body: JSON.stringify({
-        secret: sharedSecret,
-        requestId: payload.requestId,
-        category: payload.category,
-        message: payload.message.trim(),
-        clientAddress,
-      }),
-      redirect: 'follow',
-    });
-    const result = await upstreamResponse.json();
-    if (!upstreamResponse.ok || result.success !== true) {
-      sendJson(res, 502, { success: false, error: 'Feedback could not be delivered' });
-      return;
+    if (telegramConfigured) {
+      const telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: `ملاحظة جديدة من تطبيق أُنْس\nالنوع: ${CATEGORY_LABELS[payload.category]}\n\n${payload.message.trim()}`,
+          disable_web_page_preview: true,
+        }),
+        signal: AbortSignal.timeout(10_000),
+      });
+      const telegramResult = await telegramResponse.json();
+      if (!telegramResponse.ok || telegramResult.ok !== true) {
+        sendJson(res, 502, { success: false, error: 'Feedback could not be delivered' });
+        return;
+      }
+    }
+    if (scriptConfigured) {
+      const upstreamResponse = await fetch(parsedScriptUrl, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: JSON.stringify({
+          secret: sharedSecret,
+          requestId: payload.requestId,
+          category: payload.category,
+          message: payload.message.trim(),
+          clientAddress,
+        }),
+        redirect: 'follow',
+      });
+      const result = await upstreamResponse.json();
+      if (!upstreamResponse.ok || result.success !== true) {
+        sendJson(res, 502, { success: false, error: 'Feedback could not be delivered' });
+        return;
+      }
     }
     sendJson(res, 200, { success: true });
   } catch {

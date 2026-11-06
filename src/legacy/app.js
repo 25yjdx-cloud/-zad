@@ -16,8 +16,22 @@ import { APP_VERSION } from '../config/appVersion.js';
 import { installOverlayFallback } from './overlay-fallback.js';
 import { auth } from '../firebase.js';
 import { enableBrowserNotifications } from '../services/pushNotifications.js';
+import postPrayerAdhkarData from '../../adhkar_after_prayer_15_ordered.json';
 
 installOverlayFallback();
+
+const POST_PRAYER_CATEGORY_KEY = 'post_prayer';
+const postPrayerAdhkar = [...postPrayerAdhkarData.adhkar]
+  .sort((left, right) => left.order - right.order)
+  .map(({ text, count, instruction, source, prayers, count_by_prayer }) => ({
+    text,
+    count,
+    instruction,
+    source,
+    prayers,
+    count_by_prayer,
+  }));
+const WAKE_LOCK_IDLE_TIMEOUT_MS = 90 * 60 * 1000;
 
 const STORAGE_KEYS = {
   lastRead: 'zad.lastRead',
@@ -276,6 +290,13 @@ quranFullscreenToggle?.addEventListener('click', async () => {
     }
   }
   syncQuranFullscreenButton();
+});
+mushafStage?.addEventListener('click', () => {
+  if (mushafStage?.dataset.swipeNavigation === 'true') return;
+  if (!quranPageImage || quranPageImage.hidden) return;
+  if (fitToScreen || document.fullscreenElement === quranReader
+    || quranReader?.classList.contains('reader-focus-mode')) return;
+  quranFullscreenToggle?.click();
 });
 document.addEventListener('fullscreenchange', syncQuranFullscreenButton);
 document.addEventListener('fullscreenerror', () => {
@@ -731,6 +752,7 @@ function categoryTitle(key) {
   return ({
     sabah: 'أذكار الصباح',
     masaa: 'أذكار المساء',
+    [POST_PRAYER_CATEGORY_KEY]: 'أذكار بعد الصلاة',
     sleep: 'أذكار النوم',
     wakeup: 'أذكار الاستيقاظ',
     asma_al_husna: 'أسماء الله الحسنى',
@@ -777,6 +799,9 @@ let duas = [];
 let autoPageTimer = 0;
 let wakeLock = null;
 let wakeLockRequested = false;
+let wakeLockRequestPending = false;
+let wakeLockIdleTimer = 0;
+let wakeLockLastActivityAt = 0;
 let reminderTimer = 0;
 let azkarResetTimer = 0;
 let azkarData = null;
@@ -994,7 +1019,12 @@ document.querySelectorAll('[data-open-surah-info]').forEach((button) => {
     if (quickMenu?.contains(button)) quickMenu.open = false;
     const currentSurah = surahAtPage(currentPage);
     window.dispatchEvent(new CustomEvent('uns:open-surah-info', {
-      detail: { surahNumber: currentSurah.id },
+      detail: {
+        surahNumber: currentSurah.id,
+        ayahNumber: selectedAyahForTafsir?.surahNumber === currentSurah.id
+          ? selectedAyahForTafsir.ayahNumber
+          : 1,
+      },
     }));
   });
 });
@@ -2126,6 +2156,7 @@ if (feedbackForm && notesField) {
       writeStorage(STORAGE_KEYS.notes, '');
       delete feedbackForm.dataset.requestId;
       status.textContent = 'تم إرسال ملاحظتك بنجاح، شكراً لمشاركتك!';
+      showShareToast(status.textContent);
     } catch (error) {
       status.textContent = feedbackFailureMessage(error, true);
     } finally {
@@ -2197,52 +2228,133 @@ if (autoPageSpeed) autoPageSpeed.addEventListener('input', () => {
   }
 });
 
-async function requestWakeLock() {
-  if (!('wakeLock' in navigator)) {
-    wakeLockRequested = false;
-    statusElement.textContent = 'ميزة إبقاء الشاشة مستيقظة غير مدعومة في هذا المتصفح.';
+function updateWakeLockButton(enabled) {
+  wakeLockToggle.setAttribute('aria-pressed', String(enabled));
+  wakeLockToggle.textContent = enabled
+    ? '☼ إيقاف إبقاء الشاشة'
+    : '☼ إبقاء الشاشة مستيقظة';
+}
+
+function scheduleWakeLockIdleTimeout() {
+  window.clearTimeout(wakeLockIdleTimer);
+  if (!wakeLockRequested) return;
+  const remaining = Math.max(0, WAKE_LOCK_IDLE_TIMEOUT_MS - (Date.now() - wakeLockLastActivityAt));
+  wakeLockIdleTimer = window.setTimeout(() => {
+    if (!wakeLockRequested) return;
+    if (Date.now() - wakeLockLastActivityAt < WAKE_LOCK_IDLE_TIMEOUT_MS) {
+      scheduleWakeLockIdleTimeout();
+      return;
+    }
+    void stopWakeLock(true);
+  }, remaining);
+}
+
+async function stopWakeLock(timedOut = false) {
+  wakeLockRequested = false;
+  window.clearTimeout(wakeLockIdleTimer);
+  const activeWakeLock = wakeLock;
+  wakeLock = null;
+  let releaseError = '';
+  if (activeWakeLock && !activeWakeLock.released) {
+    try {
+      await activeWakeLock.release();
+    } catch (error) {
+      releaseError = error.message;
+    }
+  }
+  updateWakeLockButton(false);
+  if (releaseError) {
+    statusElement.textContent = `تعذر إيقاف إبقاء الشاشة مستيقظة: ${releaseError}`;
     statusElement.className = 'load-status is-warning';
     return;
   }
-  try {
-    wakeLock = await navigator.wakeLock.request('screen');
-    wakeLock.addEventListener('release', () => {
-      wakeLock = null;
-      if (wakeLockRequested && document.visibilityState === 'visible') {
-        requestWakeLock();
-      } else {
-        wakeLockToggle.setAttribute('aria-pressed', 'false');
-        wakeLockToggle.textContent = '☼ إبقاء الشاشة مستيقظة';
-      }
-    });
-    wakeLockRequested = true;
-    wakeLockToggle.setAttribute('aria-pressed', 'true');
-    wakeLockToggle.textContent = '☼ إيقاف إبقاء الشاشة';
-  } catch (error) {
-    wakeLockRequested = false;
-    wakeLockToggle.setAttribute('aria-pressed', 'false');
-    wakeLockToggle.textContent = '☼ إبقاء الشاشة مستيقظة';
-    statusElement.textContent = `تعذر إبقاء الشاشة مستيقظة: ${error.message}`;
+  if (timedOut) {
+    statusElement.textContent = 'تم إيقاف إبقاء الشاشة مستيقظة بعد 90 دقيقة من عدم النشاط حفاظاً على البطارية.';
     statusElement.className = 'load-status is-warning';
   }
 }
 
-wakeLockToggle.addEventListener('click', async () => {
-  if (wakeLock) {
+async function requestWakeLock() {
+  if (!wakeLockRequested || wakeLockRequestPending || wakeLock) return;
+  if (!('wakeLock' in navigator)) {
     wakeLockRequested = false;
-    await wakeLock.release();
-    wakeLock = null;
-    wakeLockToggle.textContent = '☼ إبقاء الشاشة مستيقظة';
-    wakeLockToggle.setAttribute('aria-pressed', 'false');
-  } else {
-    wakeLockRequested = true;
-    await requestWakeLock();
+    window.clearTimeout(wakeLockIdleTimer);
+    updateWakeLockButton(false);
+    statusElement.textContent = 'ميزة إبقاء الشاشة مستيقظة غير مدعومة في هذا المتصفح.';
+    statusElement.className = 'load-status is-warning';
+    return;
   }
+  wakeLockRequestPending = true;
+  try {
+    const requestedWakeLock = await navigator.wakeLock.request('screen');
+    if (!wakeLockRequested) {
+      await requestedWakeLock.release();
+      return;
+    }
+    wakeLock = requestedWakeLock;
+    requestedWakeLock.addEventListener('release', () => {
+      if (wakeLock === requestedWakeLock) wakeLock = null;
+      if (wakeLockRequested && document.visibilityState === 'visible') {
+        void requestWakeLock();
+      } else if (!wakeLockRequested) {
+        updateWakeLockButton(false);
+      }
+    });
+    updateWakeLockButton(true);
+  } catch (error) {
+    if (wakeLockRequested) {
+      wakeLockRequested = false;
+      window.clearTimeout(wakeLockIdleTimer);
+      updateWakeLockButton(false);
+      statusElement.textContent = `تعذر إبقاء الشاشة مستيقظة: ${error.message}`;
+      statusElement.className = 'load-status is-warning';
+    }
+  } finally {
+    wakeLockRequestPending = false;
+  }
+}
+
+document.addEventListener('pointerdown', () => {
+  if (!wakeLockRequested) return;
+  wakeLockLastActivityAt = Date.now();
+  scheduleWakeLockIdleTimeout();
+}, { passive: true });
+document.addEventListener('keydown', () => {
+  if (!wakeLockRequested) return;
+  wakeLockLastActivityAt = Date.now();
+  scheduleWakeLockIdleTimeout();
+}, { passive: true });
+document.addEventListener('touchstart', () => {
+  if (!wakeLockRequested) return;
+  wakeLockLastActivityAt = Date.now();
+  scheduleWakeLockIdleTimeout();
+}, { passive: true });
+document.addEventListener('wheel', () => {
+  if (!wakeLockRequested) return;
+  wakeLockLastActivityAt = Date.now();
+  scheduleWakeLockIdleTimeout();
+}, { passive: true });
+
+wakeLockToggle.title = 'يتوقف تلقائياً بعد 90 دقيقة من عدم النشاط.';
+wakeLockToggle.addEventListener('click', async () => {
+  if (wakeLockRequested || wakeLock) {
+    await stopWakeLock();
+    return;
+  }
+  wakeLockRequested = true;
+  wakeLockLastActivityAt = Date.now();
+  updateWakeLockButton(true);
+  scheduleWakeLockIdleTimeout();
+  await requestWakeLock();
 });
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && wakeLockRequested && !wakeLock) {
-    requestWakeLock();
+  if (document.visibilityState !== 'visible' || !wakeLockRequested) return;
+  if (Date.now() - wakeLockLastActivityAt >= WAKE_LOCK_IDLE_TIMEOUT_MS) {
+    void stopWakeLock(true);
+    return;
   }
+  scheduleWakeLockIdleTimeout();
+  void requestWakeLock();
 });
 
 function saveReminders() {
@@ -2488,7 +2600,8 @@ async function showShareFallback(message = '') {
   bootstrap.Modal.getOrCreateInstance(shareModalElement).show();
 }
 
-function showShareToast() {
+function showShareToast(message = 'تم نسخ الرابط بنجاح!') {
+  shareToast.textContent = message;
   shareToast.hidden = false;
   window.clearTimeout(shareToastTimer);
   shareToastTimer = window.setTimeout(() => {
@@ -2585,6 +2698,7 @@ feedbackModalForm.addEventListener('submit', async (event) => {
     delete feedbackModalForm.dataset.requestId;
     feedbackModalStatus.classList.add('is-success');
     feedbackModalStatus.textContent = 'تم إرسال ملاحظتك بنجاح، شكراً لمشاركتك!';
+    showShareToast(feedbackModalStatus.textContent);
   } catch (error) {
     feedbackModalStatus.classList.add('is-error');
     feedbackModalStatus.textContent = feedbackFailureMessage(error);
@@ -3029,8 +3143,13 @@ document.querySelector('#backup-import-file').addEventListener('change', async (
   }
 });
 
-function targetForZikr(text) {
-  const match = normalizeDigits(text).match(/\((\d+)\s*مر(?:ة|ات)\)/);
+function targetForZikr(record) {
+  const explicitTarget = record && typeof record === 'object' && Number.isInteger(record.count)
+    ? record.count
+    : 0;
+  if (explicitTarget > 0) return explicitTarget;
+  const zikrText = typeof record === 'string' ? record : firstText(record, ['text', 'content', 'zekr', 'ذكر', 'النص']);
+  const match = normalizeDigits(zikrText).match(/\((\d+)\s*مر(?:ة|ات)\)/);
   return match ? Math.max(1, Number(match[1])) : 1;
 }
 
@@ -3040,7 +3159,12 @@ function renderAzkar(value) {
     zikrCounts = {};
     saveAzkarResetTimestamp();
   }
-  const categories = recordsOf(value);
+  const categories = recordsOf(value).filter(([key]) => key !== POST_PRAYER_CATEGORY_KEY);
+  const eveningIndex = categories.findIndex(([key]) => key === 'masaa');
+  categories.splice(eveningIndex < 0 ? categories.length : eveningIndex + 1, 0, [
+    POST_PRAYER_CATEGORY_KEY,
+    postPrayerAdhkar,
+  ]);
   if (!categories.length) {
     azkarTotalTarget = 0;
     trackedZikrKeys = new Set();
@@ -3111,7 +3235,7 @@ function renderAzkar(value) {
         : firstText(record, ['text', 'content', 'zekr', 'ذكر', 'النص']);
       if (!text) return;
       const counterKey = `${key}:${itemIndex}`;
-      const target = targetForZikr(text);
+      const target = targetForZikr(record);
       const count = Number.isInteger(zikrCounts[counterKey])
         ? Math.max(0, Math.min(target, zikrCounts[counterKey]))
         : 0;
@@ -3129,6 +3253,16 @@ function renderAzkar(value) {
       const zikrText = document.createElement('p');
       zikrText.className = 'zikr-text';
       zikrText.textContent = text;
+      const zikrCopy = document.createElement('div');
+      zikrCopy.className = 'zikr-copy';
+      zikrCopy.append(zikrText);
+      const instruction = firstText(record, ['instruction']);
+      if (instruction) {
+        const instructionText = document.createElement('p');
+        instructionText.className = 'zikr-instruction';
+        instructionText.textContent = instruction;
+        zikrCopy.append(instructionText);
+      }
       const counter = document.createElement('button');
       counter.className = 'zikr-counter';
       counter.type = 'button';
@@ -3153,7 +3287,7 @@ function renderAzkar(value) {
         saveAzkarProgress();
         updateAzkarProgress(totalTarget);
       });
-      zikrCard.append(zikrText, counter);
+      zikrCard.append(zikrCopy, counter);
       body.append(zikrCard);
     });
     panel.append(body);
